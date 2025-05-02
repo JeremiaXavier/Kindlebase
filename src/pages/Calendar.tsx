@@ -22,7 +22,7 @@ const Calendar: React.FC = () => {
   const [eventStartTime, setEventStartTime] = useState("09:00"); // Default start time
   const [eventEndTime, setEventEndTime] = useState("17:00");     // Default end time
   const [eventLevel, setEventLevel] = useState("Primary");
-  const {authUser} = useAuthStore();
+  
 /*   const [events, setEvents] = useState<CalendarEvent[]>([]);
  */  const calendarRef = useRef<FullCalendar>(null);
   const { isOpen, openModal, closeModal } = useModal();
@@ -79,7 +79,7 @@ const Calendar: React.FC = () => {
   };
 const handleDelete=async()=>{
   if(selectedEvent){
-    await deleteEvent(selectedEvent.id);
+    await deleteEvent(selectedEvent.date,selectedEvent.id);
     closeModal();
   }
 }
@@ -97,21 +97,22 @@ const handleDelete=async()=>{
           // Update existing event
           const updatedEventData: Partial<CalendarEvent> = { // Change to Partial<CalendarEvent>
               title: eventTitle,
-              userId: authUser?.uid,
+              
               start: start,
               end: end,
               allDay: !eventStartTime || !eventEndTime,
               extendedProps: { calendar: eventLevel||"" },
           };
-          await updateEvent(selectedEvent.id, updatedEventData); // Pass authUser
+          await updateEvent(selectedEvent.date,selectedEvent.id, updatedEventData); // Pass authUser
       } else {
           // Add new event
-          const newEvent: CalendarEvent = {
-              id: Date.now().toString(), //  handled by firestore
-              userId: authUser?.uid,
+          const newEvent: Omit<CalendarEvent,"id" | "createdAt" | "date"> = {
+              
+              
               title: eventTitle,
               start: start,
               end: end,
+            
               allDay: !eventStartTime || !eventEndTime,
               extendedProps: { calendar: eventLevel||"" },
               

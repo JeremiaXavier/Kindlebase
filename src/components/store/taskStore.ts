@@ -1,30 +1,26 @@
 import { create } from "zustand";
 import {
   collection,
-  addDoc,
-  deleteDoc,
   doc,
-  getDocs,
+  getDoc,
+  setDoc,
   updateDoc,
+  getDocs,
   Timestamp,
-  query,
-  orderBy,
-  where,
 } from "firebase/firestore";
-import { db } from "@/firebase.ts";
+
+import { db } from "@/firebase";
 import { User } from "./useAuthStore";
-// import { User } from "firebase/auth"; // Remove Firebase User
-// Import from your authStore.ts
 
 export type Task = {
-  id: string | null;
+  id: string;
   title: string;
   dueDate: string;
   priority: "Low" | "Medium" | "High";
   status: "To Do" | "In Progress" | "Completed";
   category?: string;
-  createdAt?: Timestamp;
-  userId: string; // Add userId field
+  createdAt: Timestamp;
+  date:string;
 };
 
 interface TaskStore {
@@ -33,14 +29,22 @@ interface TaskStore {
   addTaskLoading: boolean;
   updateTaskLoading: boolean;
   deleteTaskLoading: boolean;
-  fetchTasks: (authUser) => Promise<void>; //  Remove user parameter
-  addTask: (task: Omit<Task, "id">, authUser: User | null) => Promise<void>; // Remove user parameter
-  updateTask: (
-    id: string,
-    updatedTask: Partial<Task>,
-    authUser: User
+  fetchTasks: (authUser: User | null) => Promise<void>;
+  addTask: (
+    task: Omit<Task, "id" | "createdAt"|"date">,
+    authUser: User | null
   ) => Promise<void>;
-  deleteTask: (id: string) => Promise<void>;
+  updateTask: (
+    date: string,
+    taskId: string,
+    updatedTask: Partial<Task>,
+    authUser: User | null
+  ) => Promise<void>;
+  deleteTask: (
+    date: string,
+    taskId: string,
+    authUser: User | null
+  ) => Promise<void>;
 }
 
 export const useTaskStore = create<TaskStore>((set, get) => ({
@@ -52,29 +56,35 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   fetchTasks: async (authUser) => {
     set({ loading: true });
-    const { tasks } = get();
+    const {tasks} = get();
     if (!authUser) {
       set({ tasks: [], loading: false });
       return;
     }
-    if(tasks&&tasks.length>0){
+    if(tasks && tasks.length>0){
       console.log("avoids database call task is not empty");
       return;
     }else{
       console.log("task not find");
     }
     try {
-      const q = query(
-        collection(db, "tasks"),
-        where("userId", "==", authUser.uid), // Use user.uid
-        orderBy("createdAt", "desc")
-      );
-      const snapshot = await getDocs(q);
-      const tasks: Task[] = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...(doc.data() as Omit<Task, "id">),
-      }));
-      set({ tasks, loading: false });
+      const userTasksRef = collection(db, "tasks", authUser.uid, "dailyTasks");
+      const snapshot = await getDocs(userTasksRef);
+      let allTasks: Task[] = [];
+
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const date = docSnap.id;
+        if (data.tasks) {
+          const tasksWithDate = data.tasks.map((task: any) => ({
+            ...task,
+            date,
+          }));
+          allTasks = [...allTasks, ...tasksWithDate];
+        }
+      });
+
+      set({ tasks: allTasks, loading: false });
     } catch (error) {
       console.error("Error fetching tasks:", error);
       set({ loading: false });
@@ -84,22 +94,35 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   addTask: async (task, authUser) => {
     set({ addTaskLoading: true });
-    // Get user from authStore
     if (!authUser) {
-      // Handle the case where the user is not logged in
       set({ addTaskLoading: false });
       throw new Error("User not logged in");
     }
+
     try {
+      const date = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+      const taskId = crypto.randomUUID();
       const newTask: Task = {
+        id: taskId,
         ...task,
         createdAt: Timestamp.now(),
-        userId: authUser.uid, // Use user.uid
+        date,
       };
-      const docRef = await addDoc(collection(db, "tasks"), newTask);
-      const addedTask = { ...newTask, id: docRef.id };
+
+      const dayDocRef = doc(db, "tasks", authUser.uid, "dailyTasks", date);
+      const dayDocSnap = await getDoc(dayDocRef);
+
+      if (dayDocSnap.exists()) {
+        const existingTasks = dayDocSnap.data().tasks || [];
+        await updateDoc(dayDocRef, {
+          tasks: [...existingTasks, newTask],
+        });
+      } else {
+        await setDoc(dayDocRef, { tasks: [newTask] });
+      }
+
       set((state) => ({
-        tasks: [addedTask, ...state.tasks],
+        tasks: [newTask, ...state.tasks],
         addTaskLoading: false,
       }));
     } catch (error) {
@@ -109,68 +132,71 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     }
   },
 
-  updateTask: async (id, updatedTask, authUser) => {
-    
+  updateTask: async (date, taskId, updatedTask, authUser) => {
     set({ updateTaskLoading: true });
-    let originalTask: Task | undefined;
-    const currentTasks = get().tasks;
-
+    
     try {
-      // 1.  Take a copy of e task
-      originalTask = currentTasks.find((task) => task.id === id);
-      if (!originalTask) {
+      const dayDocRef = doc(db, "tasks", authUser.uid, "dailyTasks", date);
+      const dayDocSnap = await getDoc(dayDocRef);
+
+      if (!dayDocSnap.exists()) {
         set({ updateTaskLoading: false });
         throw new Error("Task not found");
       }
 
-      if (originalTask.userId !== authUser.uid) {
+      const tasks = dayDocSnap.data().tasks as Task[];
+      const taskIndex = tasks.findIndex((t) => t.id === taskId);
+
+      if (taskIndex === -1) {
         set({ updateTaskLoading: false });
-        throw new Error("Unauthorized");
+        throw new Error("Task not found");
       }
 
-      // 2. Optimistically update the task in the store
+      tasks[taskIndex] = { ...tasks[taskIndex], ...updatedTask };
+
+      await updateDoc(dayDocRef, { tasks });
+
       set((state) => ({
-        tasks: state.tasks.map((task) =>
-          task.id === id ? { ...task, ...updatedTask } : task
+        tasks: state.tasks.map((t) =>
+          t.id === taskId ? { ...t, ...updatedTask } : t
         ),
-        updateTaskLoading: true,
+        updateTaskLoading: false,
       }));
-
-      const taskRef = doc(db, "tasks", id);
-      await updateDoc(taskRef, updatedTask);
-
-      set({ updateTaskLoading: false });
     } catch (error) {
       console.error("Error updating task:", error);
       set({ updateTaskLoading: false });
-      // 3. If Firestore update fails, revert to the original task data
-      if (originalTask) {
-        // only revert if originalTask was found
-        set((state) => ({
-          tasks: state.tasks.map((task) =>
-            task.id === id ?  { ...task, ...originalTask } : task
-          ),
-        }));
-      }
       throw error;
     }
   },
 
-  deleteTask: async (id) => {
+  deleteTask: async (date, taskId, authUser) => {
     set({ deleteTaskLoading: true });
-    const previousTasks = get().tasks;
-    try {
-      // Optimistic Update
-      set((state) => ({
-        tasks: state.tasks.filter((task) => task.id !== id),
-        deleteTaskLoading: true,
-      }));
-      await deleteDoc(doc(db, "tasks", id));
+    if (!authUser) {
       set({ deleteTaskLoading: false });
+      throw new Error("User not logged in");
+    }
+
+    try {
+      const dayDocRef = doc(db, "tasks", authUser.uid, "dailyTasks", date);
+      const dayDocSnap = await getDoc(dayDocRef);
+
+      if (!dayDocSnap.exists()) {
+        set({ deleteTaskLoading: false });
+        throw new Error("Task not found");
+      }
+
+      const tasks = dayDocSnap.data().tasks as Task[];
+      const updatedTasks = tasks.filter((t) => t.id !== taskId);
+
+      await updateDoc(dayDocRef, { tasks: updatedTasks });
+
+      set((state) => ({
+        tasks: state.tasks.filter((t) => t.id !== taskId),
+        deleteTaskLoading: false,
+      }));
     } catch (error) {
       console.error("Error deleting task:", error);
       set({ deleteTaskLoading: false });
-      set({ tasks: previousTasks });
       throw error;
     }
   },

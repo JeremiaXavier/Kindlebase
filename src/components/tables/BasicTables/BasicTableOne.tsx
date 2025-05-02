@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useTaskStore } from "@/components/store/taskStore";
+import { Task, useTaskStore } from "@/components/store/taskStore";
 import { useAuthStore } from "@/components/store/useAuthStore";
 import {
   Table,
@@ -14,14 +14,7 @@ import CreateTaskModal from "@/components/models/TaskCreator";
 import { CloseLineIcon, PencilIcon } from "@/icons";
 import { useConfirmation } from "@/context/confirmProvider";
 
-interface Task {
-  id: number;
-  title: string;
-  dueDate: string;
-  priority: "Low" | "Medium" | "High";
-  status: "To Do" | "In Progress" | "Completed";
-  category?: string;
-}
+
 
 export default function BasicTableOne() {
   const { tasks, fetchTasks, deleteTask } = useTaskStore();
@@ -41,7 +34,7 @@ export default function BasicTableOne() {
       message: "Are you sure you want to delete this item?",
       title: "Delete Item",
       onConfirm: () => {
-        deleteTask(task.id); // Perform delete operation
+        deleteTask(task.date,task.id,authUser); // Perform delete operation
       },
       onCancel: () => {
         console.log('Deletion cancelled.');

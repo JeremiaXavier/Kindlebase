@@ -12,7 +12,7 @@ import { useAuthStore } from "../store/useAuthStore";
 interface TaskModalProps {
   isOpen: boolean;
   closeModal: () => void;
-  taskToEdit?: Task; // Task to edit, if any
+  taskToEdit?: Task | null; // Task to edit, if any
 }
 
 export default function CreateTaskModal({
@@ -20,7 +20,7 @@ export default function CreateTaskModal({
   closeModal,
   taskToEdit,
 }: TaskModalProps) {
-  const [form, setForm] = useState<Omit<Task, "id"|"createdAt"|"userId">>({
+  const [form, setForm] = useState<Omit<Task, "id"|"date"|"createdAt">>({
     title: "",
     dueDate: "",
     priority: "Medium",
@@ -49,7 +49,7 @@ const {authUser}= useAuthStore();
     try {
       if (taskToEdit) {
         // Update existing task
-        await updateTask(taskToEdit.id, form,authUser);
+        await updateTask(taskToEdit.date,taskToEdit.id, form,authUser);
       } else {
         // Add new task
         await addTask(form,authUser);
