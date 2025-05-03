@@ -23,7 +23,7 @@ interface EventState {
   loading: boolean;
   error: string | null;
   fetchEvents: () => Promise<void>;
-  addEvent: (event: Omit<CalendarEvent,"id" | "createdAt" | "date">) => Promise<void>;
+  addEvent: (event: Omit<CalendarEvent,"id" | "date">) => Promise<void>;
   updateEvent: (date:string,eventId: string, updates: Partial<CalendarEvent>) => Promise<void>;
   deleteEvent: (date:string,eventId: string) => Promise<void>;
 }
@@ -119,12 +119,12 @@ const useEventStore = create<EventState>((set, get) => ({
     set({ loading: true, error: null });
     const authUser = useAuthStore.getState().authUser; // Get authUser
     if (!authUser) {
-      set({ loading: false, error: "User not authenticated" });
+      set({ loading: false });
       return; // Or handle error
     }
 
     try {
-      const dayDocRef = doc(db, 'events',authUser.uid,"dailyEvents",date); //  Use eventId
+      const dayDocRef = doc(db, 'events', authUser.uid, "dailyEvents", date); // Corrected doc path
       const dayDocSnap = await getDoc(dayDocRef);
       
       //  handle updates to start and end.

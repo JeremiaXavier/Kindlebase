@@ -3,30 +3,33 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import {  DateSelectArg, EventClickArg } from "@fullcalendar/core";
+import { DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import { Modal } from "../components/ui/modal";
 import { useModal } from "../hooks/useModal";
 import PageMeta from "../components/common/PageMeta";
- // Import your Firestore instance
+// Import your Firestore instance
 
 import useEventStore, { CalendarEvent } from "@/components/store/calenderStore";
 import { useAuthStore } from "@/components/store/useAuthStore";
-
+import { useConfirmation } from "@/context/confirmProvider";
 
 const Calendar: React.FC = () => {
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
+    null
+  );
   const [eventTitle, setEventTitle] = useState("");
-  const {events,fetchEvents,addEvent,updateEvent,deleteEvent}= useEventStore();
+  const { events, fetchEvents, addEvent, updateEvent, deleteEvent } =
+    useEventStore();
   const [eventStartDate, setEventStartDate] = useState("");
   const [eventEndDate, setEventEndDate] = useState("");
   const [eventStartTime, setEventStartTime] = useState("09:00"); // Default start time
-  const [eventEndTime, setEventEndTime] = useState("17:00");     // Default end time
+  const [eventEndTime, setEventEndTime] = useState("17:00"); // Default end time
   const [eventLevel, setEventLevel] = useState("Primary");
-  
-/*   const [events, setEvents] = useState<CalendarEvent[]>([]);
- */  const calendarRef = useRef<FullCalendar>(null);
+
+  /*   const [events, setEvents] = useState<CalendarEvent[]>([]);
+   */ const calendarRef = useRef<FullCalendar>(null);
   const { isOpen, openModal, closeModal } = useModal();
-  
+
   const calendarsEvents = {
     Danger: "danger",
     Success: "success",
@@ -35,13 +38,11 @@ const Calendar: React.FC = () => {
   };
 
   useEffect(() => {
-    
-    if (!events || events.length === 0) { // Check if events are not yet in the store
+    if (!events || events.length === 0) {
+      // Check if events are not yet in the store
       fetchEvents();
-      console.log('events fetched');
+      console.log("events fetched");
     }
-    
-    
   }, []);
 
   const handleDateSelect = (selectInfo: DateSelectArg) => {
@@ -55,35 +56,66 @@ const Calendar: React.FC = () => {
 
     // If it's an all-day event in month view, default time.
     if (!selectInfo.allDay) {
-        const start = selectInfo.start;
-        const end = selectInfo.end;
-        setEventStartTime(start.toTimeString().slice(0, 5));
-        setEventEndTime(end.toTimeString().slice(0, 5));
+      const start = selectInfo.start;
+      const end = selectInfo.end;
+      setEventStartTime(start.toTimeString().slice(0, 5));
+      setEventEndTime(end.toTimeString().slice(0, 5));
     } else {
-        setEventStartTime("09:00");
-        setEventEndTime("17:00");
+      setEventStartTime("09:00");
+      setEventEndTime("17:00");
     }
     openModal();
   };
 
   const handleEventClick = (clickInfo: EventClickArg) => {
     const event = clickInfo.event;
-    setSelectedEvent(event as unknown as CalendarEvent);
+    let eventDate = "";
+
+    // Find the event in the events array to get the date
+    const foundEvent = events.find((e) => e.id === event.id); // Use events from zustand
+    if (foundEvent) {
+      eventDate = foundEvent.date;
+     }
+
+    setSelectedEvent({
+      title:event.title,
+      start:event.start ? event.startStr.split("T")[0] : "",
+      end:event.end ? event.endStr.split("T")[0] : "",
+      allDay:event.allDay,
+      extendedProps:{calendar:event.extendedProps.calender},// Use type assertion here
+      date: eventDate,
+      id:event.id,
+    });
+    console.log("clicked Event:",selectedEvent);
     setEventTitle(event.title);
-    setEventStartDate(event.start ? event.startStr.split("T")[0] : '');
-    setEventEndDate(event.end ? event.endStr.split("T")[0] : '');
-    setEventStartTime(event.start ? event.start.toTimeString().slice(0, 5) : '09:00'); // Extract time
-    setEventEndTime(event.end ? event.end.toTimeString().slice(0, 5) : '17:00');     // Extract time
+    setEventStartDate(event.start ? event.startStr.split("T")[0] : "");
+    setEventEndDate(event.end ? event.endStr.split("T")[0] : "");
+    setEventStartTime(
+      event.start ? event.start.toTimeString().slice(0, 5) : "09:00"
+    ); // Extract time
+    setEventEndTime(event.end ? event.end.toTimeString().slice(0, 5) : "17:00"); // Extract time
     setEventLevel(event.extendedProps.calendar);
     openModal();
   };
-const handleDelete=async()=>{
-  if(selectedEvent){
-    await deleteEvent(selectedEvent.date,selectedEvent.id);
-    closeModal();
-  }
-}
-  const handleAddOrUpdateEvent = async() => {
+  const takeConfirmation = useConfirmation();
+  const handleDelete = async () => {
+    
+    
+    if (selectedEvent) {
+      takeConfirmation({
+        message: "Are you sure you want to delete this transaction?",
+        title: "Confirm Deletion",
+        onConfirm: async() => {
+          await deleteEvent(selectedEvent.date, selectedEvent.id); // Perform delete operation
+        },
+        onCancel: () => {
+          console.log('Deletion cancelled.');
+      },
+      });
+      closeModal();
+    }
+  };
+  const handleAddOrUpdateEvent = async () => {
     let start = eventStartDate;
     let end = eventEndDate;
 
@@ -94,37 +126,40 @@ const handleDelete=async()=>{
 
     try {
       if (selectedEvent) {
-          // Update existing event
-          const updatedEventData: Partial<CalendarEvent> = { // Change to Partial<CalendarEvent>
-              title: eventTitle,
-              
-              start: start,
-              end: end,
-              allDay: !eventStartTime || !eventEndTime,
-              extendedProps: { calendar: eventLevel||"" },
-          };
-          await updateEvent(selectedEvent.date,selectedEvent.id, updatedEventData); // Pass authUser
+        // Update existing event
+        console.log("selected Event", selectedEvent);
+        const updatedEventData: Partial<CalendarEvent> = {
+          // Change to Partial<CalendarEvent>
+          title: eventTitle,
+
+          start: start,
+          end: end,
+          allDay: !eventStartTime || !eventEndTime,
+          extendedProps: { calendar: eventLevel || "" },
+        };
+        await updateEvent(
+          selectedEvent.date,
+          selectedEvent.id,
+          updatedEventData
+        ); // Pass authUser
       } else {
-          // Add new event
-          const newEvent: Omit<CalendarEvent,"id" | "createdAt" | "date"> = {
-              
-              
-              title: eventTitle,
-              start: start,
-              end: end,
-            
-              allDay: !eventStartTime || !eventEndTime,
-              extendedProps: { calendar: eventLevel||"" },
-              
-          };
-          await addEvent(newEvent);
+        // Add new event
+        const newEvent: Omit<CalendarEvent, "id" | "createdAt" | "date"> = {
+          title: eventTitle,
+          start: start,
+          end: end,
+
+          allDay: !eventStartTime || !eventEndTime,
+          extendedProps: { calendar: eventLevel || "" },
+        };
+        await addEvent(newEvent);
       }
       closeModal();
       resetModalFields();
-  } catch (error) {
+    } catch (error) {
       console.error("Error adding/updating event:", error);
       //  show error to user
-  }
+    }
   };
 
   const resetModalFields = () => {
@@ -136,13 +171,10 @@ const handleDelete=async()=>{
     setEventLevel("");
     setSelectedEvent(null);
   };
-console.log(events);
+  console.log(events);
   return (
     <>
-      <PageMeta
-        title="Kindlebase"
-        description=""
-      />
+      <PageMeta title="Kindlebase" description="" />
       <div className="rounded-2xl border  border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="custom-calendar">
           <FullCalendar
@@ -166,8 +198,8 @@ console.log(events);
               },
             }}
             initialDate={new Date()}
-            slotMinTime="01:00:00"  //set the starting time of the day
-            slotMaxTime="24:00:00"  // set the ending time of the day
+            slotMinTime="01:00:00" //set the starting time of the day
+            slotMaxTime="24:00:00" // set the ending time of the day
             allDaySlot={false}
           />
         </div>
@@ -324,9 +356,13 @@ console.log(events);
 };
 
 const renderEventContent = (eventInfo: any) => {
-  const colorClass = `fc-bg-${eventInfo.event.extendedProps.calendar.toLowerCase()||""}`;
+  const colorClass = `fc-bg-${
+    eventInfo.event.extendedProps.calendar.toLowerCase() || ""
+  }`;
   return (
-    <div className={`event-fc-color flex flex-col fc-event-main w-full ${colorClass}  rounded-sm`}>
+    <div
+      className={`event-fc-color flex flex-col fc-event-main w-full ${colorClass}  rounded-sm`}
+    >
       <div className="fc-event-time">{eventInfo.timeText}m</div>
       <div className="fc-event-title">{eventInfo.event.title}</div>
     </div>

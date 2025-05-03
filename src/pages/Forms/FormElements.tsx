@@ -1,7 +1,5 @@
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import DefaultInputs from "../../components/form/form-elements/DefaultInputs";
 import PageMeta from "../../components/common/PageMeta";
-import Label from "@/components/form/Label";
 import TextArea from "@/components/form/input/TextArea";
 import Button from "@/components/ui/button/Button";
 import Avatar from "@/components/ui/avatar/Avatar";
@@ -9,94 +7,52 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/utils";
 import { MailIcon, PaperPlaneIcon, PencilIcon, UserCircleIcon } from "@/icons";
 import InviteFriendModal from "@/components/models/InviteModel";
-type Reply = {
-  id: string;
-  userId: string;
-  userName: string;
-  userAvatar: string;
-  content: string;
-  timestamp: string;
-  likes: number;
-};
-
-type Post = {
-  id: string;
-  userName: string;
-  userAvatar: string;
-  content: string;
-  timestamp: string;
-  isCurrentUser: boolean;
-  likes: number;
-  replies: Reply[];
-};
+import useChatStore, { Post, Reply } from "@/components/store/chatStore";
+import { useAuthStore } from "@/components/store/useAuthStore";
+import { useParams } from "react-router";
 
 export default function FormElements() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [replyToPostId, setReplyToPostId] = useState<string | null>(null);
-
+  const { posts, createPost, addReply, likePost, likeReply, fetchPosts } =
+    useChatStore();
+  const { authUser } = useAuthStore();
+  const { id } = useParams();
+  const communityId = id;
   const [message, setMessage] = useState("");
-  const [posts, setPosts] = useState<Post[]>([
-    {
-      id: "1",
-      userName: "User One",
-      userAvatar: "https://via.placeholder.com/40",
-      content: "Just joined the community! Excited to be here.",
-      timestamp: "2024-07-24 10:00 AM",
-      isCurrentUser: false,
-      likes: 0,
-      replies: [],
-    },
-  ]);
+
   const handleCreatePost = () => {
     if (!message.trim()) return;
 
     if (replyToPostId) {
       // Submit as reply
       const newReply: Reply = {
-        id: crypto.randomUUID(),
-        userId: "CurrentUser",
-        userName: "Current User",
-        userAvatar: "https://via.placeholder.com/40",
+        userId: authUser.uid,
+        userName: authUser?.displayName || "",
+        userAvatar: authUser?.photoURL || "",
         content: message,
-        timestamp: new Date().toLocaleString(),
-        likes: 0,
       };
+      addReply(replyToPostId, newReply, communityId || null);
 
-      setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post.id === replyToPostId
-            ? { ...post, replies: [...post.replies, newReply] }
-            : post
-        )
-      );
       setReplyToPostId(null); // Reset reply state
     } else {
       // Submit as new post
-      const newPost: Post = {
-        id: crypto.randomUUID(),
-        userName: "Current User",
-        userAvatar: "https://via.placeholder.com/40",
-        content: message,
-        timestamp: new Date().toLocaleString(),
-        isCurrentUser: true,
-        likes: 0,
-        replies: [],
-      };
-      setPosts((prevPosts) => [...prevPosts, newPost]);
+
+      createPost(
+        message,
+        authUser?.uid,
+        authUser?.displayName,
+        authUser?.photoURL,
+        communityId
+      );
     }
 
     setMessage(""); // Clear input
   };
   const [expandedReplies, setExpandedReplies] = useState<string[]>([]);
-  const [replyContents, setReplyContents] = useState<{
-    [postId: string]: string;
-  }>({});
+
   const handleLikePost = (postId: string) => {
-    setPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === postId ? { ...post, likes: post.likes + 1 } : post
-      )
-    );
+    likePost(postId, communityId || "");
   };
 
   const toggleReplies = (postId: string) => {
@@ -107,51 +63,17 @@ export default function FormElements() {
     }
   };
 
-  const handleReply = (postId: string) => {
-    const replyContent = replyContents[postId];
-    if (!replyContent || !replyContent.trim()) return;
-
-    const newReply: Reply = {
-      id: crypto.randomUUID(),
-      userId: "CurrentUser", // Replace with actual user ID
-      userName: "Current User", // Replace with actual user name
-      userAvatar: "https://via.placeholder.com/40", // Replace
-      content: replyContent,
-      timestamp: new Date().toLocaleString(),
-      likes: 0,
-    };
-
-    setPosts((prevPosts) =>
-      prevPosts.map((post) => {
-        if (post.id === postId) {
-          return { ...post, replies: [...post.replies, newReply] };
-        }
-        return post;
-      })
-    );
-    setReplyContents((prev) => ({ ...prev, [postId]: "" }));
-    if (!expandedReplies.includes(postId)) {
-      setExpandedReplies((prev) => [...prev, postId]);
-    }
-  };
-
   const handleLikeReply = (postId: string, replyId: string) => {
-    setPosts((prevPosts) =>
-      prevPosts.map((post) => {
-        if (post.id === postId) {
-          return {
-            ...post,
-            replies: post.replies.map((reply) =>
-              reply.id === replyId
-                ? { ...reply, likes: reply.likes + 1 }
-                : reply
-            ),
-          };
-        }
-        return post;
-      })
-    );
+    likeReply(postId, replyId, communityId);
   };
+  useEffect(() => {
+    if (posts && posts.length === 0) {
+      if (communityId) {
+        fetchPosts(communityId);
+        console.log("posts fetched", posts);
+      }
+    }
+  }, [communityId]);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [posts]);
@@ -163,7 +85,7 @@ export default function FormElements() {
         description="A page for community text messaging"
       />
 
-      <PageBreadcrumb pageTitle="Community Forum" />
+      <PageBreadcrumb pageTitle="Community chat" />
       <Button
         variant="ghost"
         size="icon"
@@ -196,21 +118,21 @@ export default function FormElements() {
               >
                 <div className="flex items-start gap-3 max-w-[80%]">
                   <Avatar
-                    src="/images/user/user-01.jpg"
-                    size="small"
+                    src={post.userAvatar}
+                    size="medium"
                     className="mt-1"
                   />
                   <div className="flex flex-col space-y-1 w-full">
                     <div
                       className={cn(
                         "px-4 py-3 rounded-lg border whitespace-pre-wrap shadow",
-                        post.isCurrentUser
+                        post.userId === authUser.uid
                           ? "bg-blue-500 text-white border-blue-500"
                           : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
                       )}
                     >
                       <div className="text-xs font-semibold mb-1">
-                        {post.isCurrentUser ? "you" : post.userName}
+                        {post.userName}
                       </div>
                       <p className="text-sm break-words">{post.content}</p>
                     </div>
@@ -225,6 +147,7 @@ export default function FormElements() {
                       >
                         <PencilIcon className="h-4 w-4" />
                       </Button>
+                      {post.likes}
                       <Button
                         variant="ghost"
                         size="icon"
@@ -232,6 +155,7 @@ export default function FormElements() {
                       >
                         <MailIcon className="h-4 w-4" />
                       </Button>
+                      {post.replies.length}
                       <Button
                         variant="ghost"
                         size="icon"
@@ -254,12 +178,25 @@ export default function FormElements() {
                               size="small"
                               className="mt-1"
                             />
-                            <div className="bg-gray-100 dark:bg-gray-700 text-sm rounded-lg px-4 py-2 shadow border dark:border-gray-600 w-fit max-w-[90%]">
-                              <div className="text-xs font-semibold mb-1">
-                                {reply.userName}
+
+                            <div className="flex flex-col">
+                              {/* Chat bubble */}
+                              <div
+                                className={cn(
+                                  "px-4 py-3 rounded-lg border whitespace-pre-wrap shadow",
+                                  reply.userId === authUser.uid
+                                    ? "bg-blue-500 text-white border-blue-500"
+                                    : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                                )}
+                              >
+                                <div className="text-xs font-semibold mb-1">
+                                  {reply.userName}
+                                </div>
+                                <p className="break-words">{reply.content}</p>
                               </div>
-                              <p className="break-words">{reply.content}</p>
-                              <div className="flex items-center text-xs text-gray-500 mt-1 gap-2">
+
+                              {/* Footer below bubble */}
+                              <div className="flex items-center text-xs text-gray-500 mt-1 gap-2 ml-2">
                                 <span>{reply.timestamp}</span>
                                 <Button
                                   variant="ghost"

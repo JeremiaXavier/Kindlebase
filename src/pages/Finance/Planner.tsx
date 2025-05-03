@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PageMeta from "@/components/common/PageMeta";
 import Button from "@/components/ui/button/Button";
@@ -6,45 +6,12 @@ import Button from "@/components/ui/button/Button";
 import { AddTransactionModal } from "@/components/finance/AddTransactionModel";
 import { useTheme } from "@/context/ThemeContext";
 import { PencilIcon, TrashBinIcon } from "@/icons";
+import { Transaction, useFinanceStore } from "@/components/store/financeStore";
+import { useConfirmation } from "@/context/confirmProvider";
 
 // Dynamically import ReactApexChart to avoid SSR issues
 const ReactApexChart = React.lazy(() => import("react-apexcharts"));
 // Sample data
-const sampleTransactions = [
-  {
-    id: 1,
-    amount: 5000,
-    type: "income",
-    category: "Salary",
-    date: "2025-05-01",
-  },
-  {
-    id: 2,
-    amount: 1200,
-    type: "expense",
-    category: "Groceries",
-    date: "2025-05-02",
-  },
-];
-
-const sampleGoals = [
-  {
-    id: 1,
-    name: "Buy a Car",
-    goalType: "Saving",
-    targetAmount: 500000,
-    currentAmount: 100000,
-    deadline: { seconds: 1683408000 }, // Sample timestamp
-  },
-  {
-    id: 2,
-    name: "Vacation Fund",
-    goalType: "Saving",
-    targetAmount: 200000,
-    currentAmount: 50000,
-    deadline: { seconds: 1708908000 }, // Sample timestamp
-  },
-];
 
 const GoalItem = ({ goal, onDelete, onUpdateProgress }) => {
   const { name, goalType, targetAmount, currentAmount, deadline } = goal;
@@ -54,7 +21,9 @@ const GoalItem = ({ goal, onDelete, onUpdateProgress }) => {
     <div className="bg-white dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-md mb-6">
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">{name}</h3>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">
+            {name}
+          </h3>
           <p className="text-sm text-gray-500 dark:text-gray-300">
             <strong>Type:</strong> {goalType}
           </p>
@@ -105,35 +74,43 @@ const GoalItem = ({ goal, onDelete, onUpdateProgress }) => {
 
 export default function FinanceDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [transactions, setTransactions] = useState(sampleTransactions);
-  const [goals, setGoals] = useState(sampleGoals);
+  const [goals, setGoals] = useState("");
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction| null>(null);
+  const {
+    transactions,
+    addTransaction,
+    fetchTransaction,
+    updateTransaction,
+    deleteTransaction,
+    fetchGoal,
+    addGoal,
+    updateGoal,
+    deleteGoal,
+  } = useFinanceStore();
+  useEffect(() => {
+    if (transactions && transactions.length === 0) {
+      fetchTransaction();
+    }
+  }, []);
+  const handleAddTransaction = (data) => {};
 
-  const handleAddTransaction = (data) => {
-    const newTransaction = {
-      id: Date.now(),
-      ...data,
-      date: new Date().toISOString().split("T")[0],
-    };
-    setTransactions([newTransaction, ...transactions]);
-  };
-
-  const handleAddGoal = (goalData) => {
+  /*  const handleAddGoal = (goalData) => {
     const newGoal = { id: Date.now(), ...goalData };
     setGoals([newGoal, ...goals]);
   };
-
-  const handleDeleteGoal = (goalId) => {
-    setGoals(goals.filter(goal => goal.id !== goalId));
+ */
+  /*   const handleDeleteGoal = (goalId) => {
+    setGoals(goals.filter((goal) => goal.id !== goalId));
   };
-
-  const handleUpdateGoalProgress = (goalToUpdate) => {
-    const updatedGoals = goals.map(goal => 
-      goal.id === goalToUpdate.id 
+ */
+  /*   const handleUpdateGoalProgress = (goalToUpdate) => {
+    const updatedGoals = goals.map((goal) =>
+      goal.id === goalToUpdate.id
         ? { ...goal, currentAmount: goal.currentAmount + 10000 } // Example: Increase progress
         : goal
     );
     setGoals(updatedGoals);
-  };
+  }; */
 
   const income = transactions.filter((t) => t.type === "income");
   const expense = transactions.filter((t) => t.type === "expense");
@@ -193,7 +170,25 @@ export default function FinanceDashboard() {
       background: theme === "dark" ? "#1e293b" : "#fff", // Match chart background to dark mode
     },
   };
+  const handleEditTransaction = async (transaction: Transaction|null) => {
+    setSelectedTransaction(transaction);
 
+    setIsModalOpen(true);
+  };
+  const takeConfirmation = useConfirmation();
+  const handleDeleteTransaction =async(transaction: Transaction)=>{
+    takeConfirmation({
+      message: "Are you sure you want to delete this transaction?",
+      title: "Confirm Deletion",
+      onConfirm: () => {
+        deleteTransaction(transaction.date,transaction.id); // Perform delete operation
+      },
+      onCancel: () => {
+        console.log('Deletion cancelled.');
+    },
+    });
+   
+  }
   return (
     <div>
       <PageMeta
@@ -264,7 +259,9 @@ export default function FinanceDashboard() {
             Your Goals
           </h4>
           {goals.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400">No goals set yet.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              No goals set yet.
+            </p>
           ) : (
             goals.map((goal) => (
               <GoalItem
@@ -312,6 +309,22 @@ export default function FinanceDashboard() {
                 >
                   {tx.type === "income" ? "+" : "-"}₹{tx.amount}
                 </span>
+                <div className="flex space-x-2">
+                  {" "}
+                  {/* Container for the buttons */}
+                  <button
+                    onClick={() => handleEditTransaction(tx)}
+                    className="px-2 py-1 text-xs text-blue-600 border border-blue-600 rounded hover:bg-blue-100 focus:outline-none focus:ring focus:ring-blue-300"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteTransaction(tx)}
+                    className="px-2 py-1 text-xs text-red-600 border border-red-600 rounded hover:bg-red-100 focus:outline-none focus:ring focus:ring-red-300"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))
           )}
@@ -321,8 +334,11 @@ export default function FinanceDashboard() {
       {/* Modal */}
       <AddTransactionModal
         isOpen={isModalOpen}
-        closeModal={() => setIsModalOpen(false)}
-        onSubmit={handleAddTransaction}
+        closeModal={() => {
+          setSelectedTransaction(null);
+          setIsModalOpen(false);
+        }}
+        transactionEdit={selectedTransaction}
       />
     </div>
   );

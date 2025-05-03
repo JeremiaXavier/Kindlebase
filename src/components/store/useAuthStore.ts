@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/firebase.ts"; 
+import { db } from "@/firebase.ts";
 
 export interface User {
-  bio: string;
+  bio?: string;
   createdAt: string;
   displayName: string;
   email: string;
@@ -16,6 +16,10 @@ export interface User {
   provider: string;
   twitter: string;
   uid: string;
+  createdCommunities: string[];
+  joinedCommunities: string[];
+
+  role: string;
 }
 
 interface AuthState {
@@ -24,7 +28,8 @@ interface AuthState {
   fetchUserData: (uid: string) => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({ // Specify the type here
+export const useAuthStore = create<AuthState>((set) => ({
+  // Specify the type here
   authUser: null,
   setUser: (authUser) => set({ authUser }),
 

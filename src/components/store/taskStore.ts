@@ -65,7 +65,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       console.log("avoids database call task is not empty");
       return;
     }else{
-      console.log("task not find");
+      console.log("task is fetched");
     }
     try {
       const userTasksRef = collection(db, "tasks", authUser.uid, "dailyTasks");

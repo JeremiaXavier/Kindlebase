@@ -95,6 +95,7 @@ const {authUser} = useAuthStore();
               className="hidden dark:block"
               src="./images/logo/logo-dark.png"
               alt="Logo"
+              width={130}
             />
           </Link>
 

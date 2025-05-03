@@ -2,6 +2,9 @@ import { useState } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PageMeta from "@/components/common/PageMeta";
 import Button from "@/components/ui/button/Button";
+import useForumStore from "@/components/store/communityStore";
+import { useAuthStore } from "@/components/store/useAuthStore";
+import { useNavigate } from "react-router";
 
 const defaultBanners = [
   "https://png.pngtree.com/thumb_back/fh260/back_pic/02/50/63/71577e1cf59d802.jpg",
@@ -12,32 +15,40 @@ const defaultBanners = [
 
 export default function CreateCommunityPage() {
   const [name, setName] = useState("");
-  const [bio, setBio] = useState("");
+  const [description, setDescription] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
   const [customUrl, setCustomUrl] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const navigate = useNavigate();
+  const { createCommunity } = useForumStore();
+  const { authUser } = useAuthStore();
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name || !bannerUrl) {
       alert("Please fill all required fields");
       return;
     }
-
-    const newCommunity = {
-      name,
-      bio,
-      bannerUrl,
-    };
-
-    console.log("Creating community:", newCommunity);
-    // Add backend save logic here
-    alert("Community created successfully!");
+    try {
+      const newCommunity = {
+        name,
+        description,
+        bannerUrl,
+      };
+      await createCommunity(newCommunity, authUser.uid);
+      console.log("Creating community:", newCommunity);
+      navigate("/communities");
+      return;
+    } catch (error:any) {
+      console.log(error.message);
+    }
   };
 
   return (
     <div>
-      <PageMeta title="Create Community" description="Create a new community group" />
+      <PageMeta
+        title="Create Community"
+        description="Create a new community group"
+      />
       <PageBreadcrumb pageTitle="Create Community" />
 
       <form
@@ -51,7 +62,9 @@ export default function CreateCommunityPage() {
 
           <div className="space-y-6">
             <div>
-              <label className="block mb-1 font-medium text-gray-700 dark:text-white">Community Name *</label>
+              <label className="block mb-1 font-medium text-gray-700 dark:text-white">
+                Community Name *
+              </label>
               <input
                 type="text"
                 className="w-full rounded border border-gray-300 px-4 py-2 dark:bg-gray-800 dark:text-white"
@@ -62,17 +75,21 @@ export default function CreateCommunityPage() {
             </div>
 
             <div>
-              <label className="block mb-1 font-medium text-gray-700 dark:text-white">Community Bio</label>
+              <label className="block mb-1 font-medium text-gray-700 dark:text-white">
+                Community Bio
+              </label>
               <textarea
                 className="w-full rounded border border-gray-300 px-4 py-2 dark:bg-gray-800 dark:text-white"
                 rows={4}
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
               />
             </div>
 
             <div>
-              <label className="block mb-2 font-medium text-gray-700 dark:text-white">Choose a Banner *</label>
+              <label className="block mb-2 font-medium text-gray-700 dark:text-white">
+                Choose a Banner *
+              </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {defaultBanners.map((url) => (
                   <img
@@ -80,7 +97,9 @@ export default function CreateCommunityPage() {
                     src={url}
                     alt="Banner"
                     className={`h-24 w-full object-cover rounded cursor-pointer border-2 ${
-                      bannerUrl === url ? "border-blue-500" : "border-transparent"
+                      bannerUrl === url
+                        ? "border-blue-500"
+                        : "border-transparent"
                     }`}
                     onClick={() => {
                       setBannerUrl(url);
@@ -109,7 +128,9 @@ export default function CreateCommunityPage() {
 
             {bannerUrl && (
               <div className="mt-6">
-                <label className="block mb-1 font-medium text-gray-700 dark:text-white">Preview</label>
+                <label className="block mb-1 font-medium text-gray-700 dark:text-white">
+                  Preview
+                </label>
                 <img
                   src={bannerUrl}
                   alt="Preview"
@@ -119,7 +140,7 @@ export default function CreateCommunityPage() {
             )}
 
             <Button
-             onClick={handleSubmit}
+              type="submit"
               className=" bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition relative right-0 bottom-0"
             >
               Create Community

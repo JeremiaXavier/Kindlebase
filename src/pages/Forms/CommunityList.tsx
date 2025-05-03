@@ -1,36 +1,16 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";  // Import Link from react-router-dom
+import { useEffect } from "react";
+import { Link } from "react-router-dom"; // Import Link from react-router-dom
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PageMeta from "@/components/common/PageMeta";
-
-interface Community {
-  id: string;
-  name: string;
-  bannerUrl: string;
-  bio: string;
-}
+import useForumStore from "@/components/store/communityStore";
 
 export default function CommunityPage() {
-  const [communities, setCommunities] = useState<Community[]>([]);  // Communities user belongs to
-
+  const { myCommunities, getMyCommunities } = useForumStore();
   useEffect(() => {
-    // Mock data for user's communities (communities they have joined or created)
-    const mockCommunities: Community[] = [
-      {
-        id: "1",
-        name: "React Developers",
-        bannerUrl: "https://png.pngtree.com/thumb_back/fh260/back_pic/02/50/63/71577e1cf59d802.jpg",
-        bio: "A community for React developers to discuss and share resources.",
-      },
-      {
-        id: "2",
-        name: "Tech Leads India",
-        bannerUrl: "https://png.pngtree.com/thumb_back/fh260/back_pic/02/50/63/71577e1cf59d802.jpg",
-        bio: "A forum for tech leads and managers in India to collaborate.",
-      },
-    ];
-
-    setCommunities(mockCommunities);
+    if (myCommunities && myCommunities.length === 0){
+      getMyCommunities();
+      console.log("my communities is read");
+    } 
   }, []);
 
   return (
@@ -43,10 +23,15 @@ export default function CommunityPage() {
           <h3 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-white">
             Communities You Joined / Created
           </h3>
+          {myCommunities.length === 0 && (
+            <p className="text-center text-gray-500 mt-10">
+              No communities joined yet.
+            </p>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
-            {communities.map((comm) => (
-              <Link key={comm.id} to={`/community/${comm.id}`}>
+            {myCommunities.map((comm) => (
+              <Link key={comm.id} to={`/forum/${comm.id}`}>
                 <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow hover:shadow-lg transition-shadow duration-300">
                   <img
                     src={comm.bannerUrl}
@@ -58,7 +43,7 @@ export default function CommunityPage() {
                       {comm.name}
                     </h4>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      {comm.bio}
+                      {comm.description}
                     </p>
                   </div>
                 </div>
@@ -66,12 +51,12 @@ export default function CommunityPage() {
             ))}
           </div>
 
-          {communities.length === 0 && (
-            <p className="text-center text-gray-500 mt-10">No communities joined yet.</p>
-          )}
-
+     
           <div className="mt-12 text-center">
-            <Link to="/join-community" className="text-blue-600 hover:underline">
+            <Link
+              to="/join-community"
+              className="text-blue-600 hover:underline"
+            >
               View Communities Available to Join
             </Link>
           </div>

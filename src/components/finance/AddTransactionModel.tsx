@@ -1,31 +1,58 @@
 import { Modal } from "@/components/ui/modal"; // Adjust import as needed
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Select from "../form/Select";
-import TextArea from "../form/input/TextArea";
 import Button from "../ui/button/Button";
+import { Transaction, useFinanceStore } from "../store/financeStore";
+interface TransactionModelProps {
+  isOpen: boolean;
+  closeModal: () => void;
+  transactionEdit?: Transaction | null;
+}
 
-export function AddTransactionModal({ isOpen, closeModal, onSubmit }) {
-  const [form, setForm] = useState({
-    amount: "",
-    type: "expense",
+export function AddTransactionModal({
+  isOpen,
+  closeModal,
+  transactionEdit,
+}: TransactionModelProps) {
+  const { addTransaction, updateTransaction } = useFinanceStore();
+  const [form, setForm] = useState<Omit<Transaction, "id" | "date">>({
+    amount: 0,
+    type: "",
     category: "",
-    description: "",
   });
+  useEffect(() => {
+    if (transactionEdit) {
+      console.log("Transaction",transactionEdit);
+      setForm({
+        amount: transactionEdit.amount,
+        type: transactionEdit.type,
+        category: transactionEdit.category,
+      });
+    }
+  }, [transactionEdit]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit(form);
-    closeModal();
-    setForm({
-      amount: "",
-      type: "expense",
-      category: "",
-      description: "",
-    });
-  };
+    try {
+      if (transactionEdit) {
+        await updateTransaction(transactionEdit.date, transactionEdit.id, form);
+      }else{
+        await addTransaction(form);
+      }
+      closeModal();
+      setForm({
+        amount: 0,
+        type: "",
+        category: "",
+      });
+    } catch (error) {
+      console.error("Error submitting form", error);
+
+    }
+};
 
   return (
     <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
@@ -44,7 +71,9 @@ export function AddTransactionModal({ isOpen, closeModal, onSubmit }) {
               <Input
                 type="number"
                 value={form.amount}
-                onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, amount: parseInt(e.target.value) })
+                }
                 placeholder="Enter amount"
                 required
               />
@@ -69,7 +98,7 @@ export function AddTransactionModal({ isOpen, closeModal, onSubmit }) {
                 placeholder="e.g. Groceries, Salary"
               />
             </div>
-            <div className="lg:col-span-2">
+            {/* <div className="lg:col-span-2">
               <Label>Description</Label>
               <TextArea
                 value={form.description}
@@ -78,14 +107,19 @@ export function AddTransactionModal({ isOpen, closeModal, onSubmit }) {
                 }
                 placeholder="Optional description"
               />
-            </div>
+            </div> */}
           </div>
           <div className="flex items-center justify-end gap-3 mt-6">
-            <Button size="sm" variant="outline" type="button" onClick={closeModal}>
+            <Button
+              size="sm"
+              variant="outline"
+              type="button"
+              onClick={closeModal}
+            >
               Cancel
             </Button>
             <Button size="sm" type="submit">
-              Save
+              {transactionEdit? "Update":"save"}
             </Button>
           </div>
         </form>

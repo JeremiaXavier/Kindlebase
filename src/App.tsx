@@ -1,4 +1,10 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+} from "react-router";
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
 import NotFound from "./pages/OtherPage/NotFound";
@@ -28,6 +34,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const setUser = useAuthStore((state) => state.setUser);
   const { authUser } = useAuthStore();
+  const navigate = useNavigate();
   useEffect(() => {
     const auth = getAuth();
 
@@ -58,9 +65,16 @@ export default function App() {
             photoURL: currentUser.photoURL || null,
             provider: currentUser.providerData[0]?.providerId,
             createdAt: new Date(),
+            joinedCommunities: [],
+            createdCommunities: [],
+            role: "user",
           });
         }
         const userData = userSnap.exists() ? userSnap.data() : {};
+        if (!userData.phoneNumber) {
+          navigate("/profile");
+          return;
+        }
         setUser({
           uid: currentUser.uid,
           displayName: currentUser.displayName || userData.name,
@@ -73,6 +87,9 @@ export default function App() {
           twitter: userData.twitter || "",
           linkedin: userData.linkedin || "",
           instagram: userData.instagram || "",
+          joinedCommunities: userData.joinedCommunities,
+          createdCommunities: userData.createdCommunities,
+          role:userData.role,
         });
       }
 
@@ -127,7 +144,7 @@ export default function App() {
           {/* Forms */}
           {/*   <Route path="/form-elements" element={<FormElements />} /> */}
           <Route path="/communities" element={<CommunityPage />} />
-          <Route path="/create-community" element={<CreateCommunityPage/>} />
+          <Route path="/create-community" element={<CreateCommunityPage />} />
           <Route path="/join-community" element={<JoinCommunityPage />} />
           <Route path="/feed" element={<FormElements />} />
           <Route path="/forum/:id" element={<FormElements />} />

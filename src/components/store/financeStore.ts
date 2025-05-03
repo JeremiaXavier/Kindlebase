@@ -11,8 +11,8 @@ import { create } from "zustand";
 import { db } from "@/firebase";
 
 export type Transaction = {
-  id: string | null;
-  userId: string;
+  id: string;
+
   amount: number;
   type: string;
   category?: string;
@@ -20,7 +20,7 @@ export type Transaction = {
 };
 export type Goal = {
   id: string | null;
-  userId: string;
+
   name: string;
   goalType: string;
   targetAmount?: number;
@@ -54,6 +54,7 @@ interface FinanceStore {
   ) => Promise<void>;
   deleteGoal: (date: string, goalId: string) => Promise<void>;
 }
+
 export const useFinanceStore = create<FinanceStore>((set, get) => ({
   transactions: [],
   goals: [],
@@ -158,7 +159,7 @@ export const useFinanceStore = create<FinanceStore>((set, get) => ({
     set({ updateTransactionloading: true });
     const authUser = useAuthStore.getState().authUser; // Get authUser
     if (!authUser) {
-      set({ loading: false, error: "User not authenticated" });
+      set({ loading: false });
       return; // Or handle error
     }
     /* const currentTransaction = get().transactions; */
@@ -172,9 +173,8 @@ export const useFinanceStore = create<FinanceStore>((set, get) => ({
         date
       );
       const dayDocSnap = await getDoc(dayDocRef);
-      /* originalTransaction = currentTransaction.find(
-        (transaction) => transaction.id === id
-      ); */ if (!dayDocSnap.exists()) {
+
+      if (!dayDocSnap.exists()) {
         throw new Error("Event not Found");
       }
 
@@ -192,7 +192,7 @@ export const useFinanceStore = create<FinanceStore>((set, get) => ({
       await updateDoc(dayDocRef, { transactions });
       set((state) => ({
         transactions: state.transactions.map((transaction) =>
-          transaction.id === id
+          transaction.id === transactionId
             ? { ...transaction, ...updatedTransaction }
             : transaction
         ),
@@ -226,25 +226,17 @@ export const useFinanceStore = create<FinanceStore>((set, get) => ({
     }
 
     try {
-      // Optimistic Update
-      /*      set((state) => ({
-        transactions: state.transactions.filter(
-          (transaction) => transaction.id !== id
-        ),
-        deleteTransactionloading: true,
-      }));
-      await deleteDoc(doc(db, "transactions", id));
-      set({ deleteTransactionloading: false }); */
       const dayDocRef = doc(
         db,
         "finance",
         authUser.uid,
-        "dailyTransaction",
+        "dailyTransactions",
         date
-      ); // Use eventId
+      );
       const dayDocSnap = await getDoc(dayDocRef);
+
       if (!dayDocSnap.exists()) {
-        throw new Error("Event not found");
+        throw new Error("Event not Found");
       }
       const transactions = dayDocSnap.data().transactions as Transaction[];
       const updatedTransaction = transactions.filter(
