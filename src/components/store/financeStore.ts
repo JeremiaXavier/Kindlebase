@@ -53,6 +53,7 @@ interface FinanceStore {
     updatedGoal: Partial<Goal>
   ) => Promise<void>;
   deleteGoal: (date: string, goalId: string) => Promise<void>;
+  logOutFinance: () => Promise<void>;
 }
 
 export const useFinanceStore = create<FinanceStore>((set, get) => ({
@@ -202,17 +203,6 @@ export const useFinanceStore = create<FinanceStore>((set, get) => ({
     } catch (error) {
       console.error("Error updating transaction:", error);
 
-      // 3. If Firestore update fails, revert to the original task data
-      /* if (originalTransaction) {
-        // only revert if originalTask was found
-        set((state) => ({
-          transactions: state.transactions.map((transaction) =>
-            transaction.id === id
-              ? { ...transaction, ...originalTransaction }
-              : transaction
-          ),
-        }));
-      } */
       throw error;
     }
   },
@@ -425,5 +415,11 @@ export const useFinanceStore = create<FinanceStore>((set, get) => ({
       set({ deleteTransactionloading: false });
       throw error;
     }
+  },
+  logOutFinance: async () => {
+    set(() => ({
+      transactions: [],
+      goals: [],
+    }));
   },
 }));

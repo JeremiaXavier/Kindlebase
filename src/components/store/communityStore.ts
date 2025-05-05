@@ -44,7 +44,7 @@ interface ForumState {
   leaveCommunity: (communityId: string, userId: string) => Promise<void>;
   getCommunities: () => Promise<void>;
   getMyCommunities: () => Promise<void>;
-  
+  logoutCommunity:()=>Promise<void>
 }
 
 const useForumStore = create<ForumState>((set, get) => ({
@@ -330,6 +330,13 @@ const useForumStore = create<ForumState>((set, get) => ({
       set({ error: error.message, loading: false });
     }
   },
+  logoutCommunity:async()=>{
+    set(()=>({
+      myCommunities: [],
+      communities: [],
+      
+    }))
+  }
 }));
 
 export default useForumStore;

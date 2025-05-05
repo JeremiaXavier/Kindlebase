@@ -37,7 +37,6 @@ const navItems: NavItem[] = [
     name: "Tasks",
     icon: <ListChecks />,
     path:"/tasks"
-    /* subItems: [{ name: "Pending", path: "/tasks-pending", pro: false },{ name: "Done", path: "/tasks-done", pro: false }], */
   },
   {
     icon: <Calendar />,
@@ -45,75 +44,16 @@ const navItems: NavItem[] = [
     path: "/calendar",
   },
  
-  /* {
-    name: "Chats",
-    icon: <TableIcon />,
-    path:"/feed"
-     subItems: [{ name: "Pending", path: "/tasks-pending", pro: false },{ name: "Done", path: "/tasks-done", pro: false }], 
-  }, */
-  {
-    name: "Notes",
-    icon: <FileText />,
-    path:"/notes"
-    /* subItems: [{ name: "Pending", path: "/tasks-pending", pro: false },{ name: "Done", path: "/tasks-done", pro: false }], */
-  },
-  
-  /* {
-    icon: <UserCircleIcon />,
-    name: "User Profile",
-    path: "/profile",
-  }, */
-  /* {
-    name: "Forms",
-    icon: <ListIcon />,
-    subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
-  }, */
- 
 
-  /* {
-    name: "Pages",
-    icon: <PageIcon />,
-    subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
-      { name: "404 Error", path: "/error-404", pro: false },
-    ],
-  }, */
+
 ];
 
 const othersItems: NavItem[] = [
-  /* {
-    icon: <PieChartIcon />,
-    name: "Charts",
-    subItems: [
-      { name: "Line Chart", path: "/line-chart", pro: false },
-      { name: "Bar Chart", path: "/bar-chart", pro: false },
-    ],
-  },
-  {
-    icon: <BoxCubeIcon />,
-    name: "UI Elements",
-    subItems: [
-      { name: "Alerts", path: "/alerts", pro: false },
-      { name: "Avatar", path: "/avatars", pro: false },
-      { name: "Badge", path: "/badge", pro: false },
-      { name: "Buttons", path: "/buttons", pro: false },
-      { name: "Images", path: "/images", pro: false },
-      { name: "Videos", path: "/videos", pro: false },
-    ],
-  },
-  {
-    icon: <PlugInIcon />,
-    name: "Authentication",
-    subItems: [
-      { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
-    ],
-  }, */
+  
   {
     name: "Finance",
     icon: <Banknote />,
     path:"/money"
-    /* subItems: [{ name: "Pending", path: "/tasks-pending", pro: false },{ name: "Done", path: "/tasks-done", pro: false }], */
   },
   {
     name: "Community",

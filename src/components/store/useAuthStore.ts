@@ -27,6 +27,7 @@ interface AuthState {
   authUser: User | null;
   setUser: (authUser: User | null) => void;
   fetchUserData: (uid: string) => Promise<void>;
+  logOut:()=>Promise<void>
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -48,4 +49,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
     }
   },
+  logOut:async()=>{
+    set(()=>({
+      authUser:null,
+    }))
+  }
 }));

@@ -5,12 +5,23 @@ import { Link, useNavigate } from "react-router";
 import { useAuthStore } from "../store/useAuthStore";
 import { signOut } from "firebase/auth";
 import { auth } from "../../firebase";
+import useEventStore from "../store/calenderStore";
+import useChatStore from "../store/chatStore";
+import useForumStore from "../store/communityStore";
+import { useFinanceStore } from "../store/financeStore";
+import { useTaskStore } from "../store/taskStore";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const setUser = useAuthStore((set)=>set.setUser);
   const navigate = useNavigate();
   const {authUser}= useAuthStore();
+  const {eventLogOut} = useEventStore();
+  const {logoutChat}=useChatStore();
+  const {logoutCommunity} = useForumStore();
+  const {logOutFinance} = useFinanceStore();
+  const {logOutTask} = useTaskStore();
+ 
   function toggleDropdown() {
     setIsOpen(!isOpen);
   }
@@ -20,7 +31,11 @@ export default function UserDropdown() {
   }
   const handleLogout = async () => {
     try {
-      // Sign out from Firebase Auth
+      eventLogOut();
+      logOutFinance();
+      logOutTask();
+      logoutChat();
+      logoutCommunity();
       await signOut(auth);
 
       // Optionally, you can clear local storage if you're storing tokens or user data there.

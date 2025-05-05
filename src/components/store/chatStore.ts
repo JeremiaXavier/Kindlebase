@@ -69,6 +69,7 @@ interface ChatStore {
   hasMoreMessages: boolean;
   loadMoreMessages: (communityId: string) => Promise<void>;
   resetMessages: (communityId: string) => void;
+  logoutChat:()=>Promise<void>
 }
 
 const useChatStore = create<ChatStore>((set, get) => ({
@@ -391,6 +392,11 @@ const useChatStore = create<ChatStore>((set, get) => ({
       throw error;
     }
   },
+  logoutChat:async()=>{
+    set(()=>({
+      posts:[],
+    }))
+  }
 }));
 
 export default useChatStore;

@@ -26,6 +26,7 @@ interface EventState {
   addEvent: (event: Omit<CalendarEvent,"id" | "date">) => Promise<void>;
   updateEvent: (date:string,eventId: string, updates: Partial<CalendarEvent>) => Promise<void>;
   deleteEvent: (date:string,eventId: string) => Promise<void>;
+  eventLogOut:()=>Promise<void>
 }
 
 const useEventStore = create<EventState>((set, get) => ({
@@ -181,6 +182,11 @@ const useEventStore = create<EventState>((set, get) => ({
       throw error;
     }
   },
+  eventLogOut:async()=>{
+    set(()=>({
+      events:[],
+    }))
+  }
 }));
 
 export default useEventStore;

@@ -10,8 +10,8 @@ import PageMeta from "../components/common/PageMeta";
 // Import your Firestore instance
 
 import useEventStore, { CalendarEvent } from "@/components/store/calenderStore";
-import { useAuthStore } from "@/components/store/useAuthStore";
 import { useConfirmation } from "@/context/confirmProvider";
+import { CogIcon } from "lucide-react";
 
 const Calendar: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
@@ -48,11 +48,11 @@ const Calendar: React.FC = () => {
   const handleDateSelect = (selectInfo: DateSelectArg) => {
     resetModalFields();
     setEventStartDate(selectInfo.startStr.split("T")[0]);
-    if (selectInfo.endStr) {
+    /* if (selectInfo.endStr) {
       setEventEndDate(selectInfo.endStr.split("T")[0]);
-    } else {
+    } else { */
       setEventEndDate(selectInfo.startStr.split("T")[0]);
-    }
+   /*  } */
 
     // If it's an all-day event in month view, default time.
     if (!selectInfo.allDay) {
@@ -195,6 +195,7 @@ const Calendar: React.FC = () => {
               addEventButton: {
                 text: "Add Event +",
                 click: openModal,
+                
               },
             }}
             initialDate={new Date()}
@@ -361,7 +362,7 @@ const renderEventContent = (eventInfo: any) => {
   }`;
   return (
     <div
-      className={`event-fc-color flex flex-col fc-event-main w-full ${colorClass}  rounded-sm`}
+      className={`event-fc-color  flex flex-col fc-event-main w-full ${colorClass}  rounded-sm`}
     >
       <div className="fc-event-time">{eventInfo.timeText}m</div>
       <div className="fc-event-title">{eventInfo.event.title}</div>

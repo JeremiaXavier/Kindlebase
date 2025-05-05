@@ -20,7 +20,7 @@ export type Task = {
   status: "To Do" | "In Progress" | "Completed";
   category?: string;
   createdAt: Timestamp;
-  date:string;
+  date: string;
 };
 
 interface TaskStore {
@@ -31,7 +31,7 @@ interface TaskStore {
   deleteTaskLoading: boolean;
   fetchTasks: (authUser: User | null) => Promise<void>;
   addTask: (
-    task: Omit<Task, "id" | "createdAt"|"date">,
+    task: Omit<Task, "id" | "createdAt" | "date">,
     authUser: User | null
   ) => Promise<void>;
   updateTask: (
@@ -45,6 +45,7 @@ interface TaskStore {
     taskId: string,
     authUser: User | null
   ) => Promise<void>;
+  logOutTask: () => Promise<void>;
 }
 
 export const useTaskStore = create<TaskStore>((set, get) => ({
@@ -56,15 +57,15 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   fetchTasks: async (authUser) => {
     set({ loading: true });
-    const {tasks} = get();
+    const { tasks } = get();
     if (!authUser) {
       set({ tasks: [], loading: false });
       return;
     }
-    if(tasks && tasks.length>0){
+    if (tasks && tasks.length > 0) {
       console.log("avoids database call task is not empty");
       return;
-    }else{
+    } else {
       console.log("task is fetched");
     }
     try {
@@ -134,7 +135,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   updateTask: async (date, taskId, updatedTask, authUser) => {
     set({ updateTaskLoading: true });
-    
+
     try {
       const dayDocRef = doc(db, "tasks", authUser.uid, "dailyTasks", date);
       const dayDocSnap = await getDoc(dayDocRef);
@@ -199,5 +200,10 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       set({ deleteTaskLoading: false });
       throw error;
     }
+  },
+  logOutTask: async () => {
+    set(() => ({
+      tasks: [],
+    }));
   },
 }));

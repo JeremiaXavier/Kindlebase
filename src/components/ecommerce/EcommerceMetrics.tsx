@@ -1,22 +1,18 @@
-import { Calendar, FileText, ListChecks } from "lucide-react";
+import { Calendar, ListChecks } from "lucide-react";
 
 import useEventStore from "../store/calenderStore";
 import { useTaskStore } from "../store/taskStore";
 
-
-
-
 export default function EcommerceMetrics() {
   const { tasks } = useTaskStore();
   const { events } = useEventStore();
-
 
   const cards = [
     {
       title: "Tasks",
       count: tasks.length,
       icon: <ListChecks className="size-6 text-white" />,
-     
+
       /* trend: "up", */
       bg: "from-purple-500 to-indigo-500",
     },
@@ -24,16 +20,8 @@ export default function EcommerceMetrics() {
       title: "Calendar",
       count: events.length,
       icon: <Calendar className="size-6 text-white" />,
-    
-       bg: "from-blue-500 to-cyan-500",
-    },
-    {
-      title: "Notes",
-      count: 8,
-      icon: <FileText className="size-6 text-white" />,
-      change: "-4.25%",
-      /*     trend: "down",
-       */ bg: "from-yellow-400 to-orange-500",
+
+      bg: "from-blue-500 to-cyan-500",
     },
   ];
   return (
@@ -58,7 +46,6 @@ export default function EcommerceMetrics() {
                 {card.count}
               </h4>
             </div>
-            
           </div>
         </div>
       ))}
