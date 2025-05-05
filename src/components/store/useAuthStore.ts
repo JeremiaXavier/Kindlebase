@@ -15,6 +15,7 @@ export interface User {
   photoURL: string;
   provider: string;
   twitter: string;
+  emailVerified:boolean;
   uid: string;
   createdCommunities: string[];
   joinedCommunities: string[];

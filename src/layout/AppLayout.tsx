@@ -3,12 +3,21 @@ import { Outlet } from "react-router";
 import AppHeader from "./AppHeader";
 import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
+import { useState } from "react";
+import { auth } from "@/firebase";
+import Alert from "@/components/ui/alert/Alert";
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
-
+/* const [verified,setVerified] = useState(false);
+if(auth.currentUser){
+  if(!auth.currentUser.emailVerified){
+    setVerified(true);
+  }
+} */
   return (
     <div className="min-h-screen xl:flex">
+
       <div>
         <AppSidebar />
         <Backdrop />

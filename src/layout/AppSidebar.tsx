@@ -17,6 +17,7 @@ import {
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
+import { Banknote, Calendar, FileText, LayoutDashboard, ListChecks, Users2 } from "lucide-react";
 
 type NavItem = {
   name: string;
@@ -27,19 +28,19 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   {
-    icon: <GridIcon />,
+    icon:  <LayoutDashboard />,
     name: "Dashboard",
     /* subItems: [{ name: "Ecommerce", path: "/", pro: false }], */
     path: "/",
   },
   {
     name: "Tasks",
-    icon: <TableIcon />,
+    icon: <ListChecks />,
     path:"/tasks"
     /* subItems: [{ name: "Pending", path: "/tasks-pending", pro: false },{ name: "Done", path: "/tasks-done", pro: false }], */
   },
   {
-    icon: <CalenderIcon />,
+    icon: <Calendar />,
     name: "Calendar",
     path: "/calendar",
   },
@@ -52,7 +53,7 @@ const navItems: NavItem[] = [
   }, */
   {
     name: "Notes",
-    icon: <TableIcon />,
+    icon: <FileText />,
     path:"/notes"
     /* subItems: [{ name: "Pending", path: "/tasks-pending", pro: false },{ name: "Done", path: "/tasks-done", pro: false }], */
   },
@@ -110,13 +111,13 @@ const othersItems: NavItem[] = [
   }, */
   {
     name: "Finance",
-    icon: <TableIcon />,
+    icon: <Banknote />,
     path:"/money"
     /* subItems: [{ name: "Pending", path: "/tasks-pending", pro: false },{ name: "Done", path: "/tasks-done", pro: false }], */
   },
   {
     name: "Community",
-    icon: <ListIcon />,
+    icon: <Users2 />,
     
     subItems: [{ name: "Your Communities", path: "/communities", pro: false },{ name: "Join Community", path: "/join-community", pro: false },{ name: "Create Community", path: "/create-community", pro: false }],
   },

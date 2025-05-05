@@ -40,7 +40,7 @@ export default function UserDropdown() {
         className="flex items-center text-gray-700 dropdown-toggle dark:text-gray-400"
       >
         <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
-          <img src={authUser?.photoURL ?? undefined} alt="User" referrerPolicy="no-referrer" />
+          <img src={authUser?.photoURL ?? "/images/user/default.png"} alt="User" referrerPolicy="no-referrer" />
         </span>
 
         <span className="block mr-1 font-medium text-theme-sm">{authUser?.displayName}</span>

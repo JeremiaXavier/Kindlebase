@@ -5,6 +5,7 @@ import {
   Navigate,
   useNavigate,
 } from "react-router";
+import { Toaster } from "react-hot-toast";
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
 import NotFound from "./pages/OtherPage/NotFound";
@@ -21,7 +22,7 @@ import { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useAuthStore } from "./components/store/useAuthStore";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "./firebase";
+import { auth, db } from "./firebase";
 import CommunityPage from "./pages/Forms/CommunityList";
 import JoinCommunityPage from "./pages/Community/JoinCommunity";
 import CreateCommunityPage from "./pages/Community/CreateCommunity";
@@ -29,12 +30,16 @@ import FinanceDashboard from "./pages/Finance/Planner";
 import FormElementsdefault from "./pages/Forms/FormElements-copy";
 import NotesList from "./pages/Notes/NoteList";
 import NoteContent from "./pages/Notes/NoteContent";
+import VerifyEmail from "./components/models/verifyEmail";
+import Alert from "./components/ui/alert/Alert";
+import NoteCreate from "./pages/Notes/createNote";
 
 export default function App() {
   const [loading, setLoading] = useState(true);
   const setUser = useAuthStore((state) => state.setUser);
   const { authUser } = useAuthStore();
-  const navigate = useNavigate();
+   const [verified,setVerified] = useState(false);
+
   useEffect(() => {
     const auth = getAuth();
 
@@ -43,11 +48,7 @@ export default function App() {
         setLoading(false);
         return;
       }
-      if (
-        authUser &&
-        authUser.uid === currentUser.uid &&
-        authUser.phoneNumber
-      ) {
+      if (authUser && authUser.uid === currentUser.uid) {
         setLoading(false);
         return;
       }
@@ -71,10 +72,7 @@ export default function App() {
           });
         }
         const userData = userSnap.exists() ? userSnap.data() : {};
-        if (!userData.phoneNumber) {
-          navigate("/profile");
-          return;
-        }
+
         setUser({
           uid: currentUser.uid,
           displayName: currentUser.displayName || userData.name,
@@ -89,7 +87,7 @@ export default function App() {
           instagram: userData.instagram || "",
           joinedCommunities: userData.joinedCommunities,
           createdCommunities: userData.createdCommunities,
-          role:userData.role,
+          role: userData.role,
         });
       }
 
@@ -97,7 +95,7 @@ export default function App() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [setUser, authUser]);
 
   if (loading) {
     return (
@@ -109,7 +107,7 @@ export default function App() {
           height: "100vh",
         }}
       >
-        <img src="./images/logo/icon.png" width={50} />
+        <img src="./images/logo/loader.gif" width={150} />
       </div>
     );
   }
@@ -123,18 +121,33 @@ export default function App() {
     if (!authUser) {
       return <Navigate to="/signin" replace />;
     }
-    return <>{element}</>;
+
+    return <>
+    
+    {!auth.currentUser?.emailVerified && (
+        <Alert
+          variant="warning"
+          title="Verify your email"
+          message="Your email verification is pending. You cannot continue for long until you verify your email"
+          showLink={true}
+          linkHref="/verify-email"
+          linkText="Click here to verify"
+        />
+      )}
+    {element}</>;
   };
   const PublicRoute = ({ element }: { element: React.ReactNode }) => {
     return authUser ? <Navigate to="/" replace /> : <>{element}</>;
   };
-
   return (
     <>
       <ScrollToTop />
-      <Routes>
+      
+      <Toaster position="top-center" />
+      <Routes>  
         {/* Dashboard Layout */}
         <Route element={<ProtectedRoute element={<AppLayout />} />}>
+        
           <Route index path="/" element={<Home />} />
           {/* Others Page */}
           <Route path="/profile" element={<UserProfiles />} />
@@ -154,8 +167,7 @@ export default function App() {
           {/*             <Route path="/basic-tables" element={<BasicTables />} />
            */}{" "}
           <Route path="/tasks" element={<BasicTables />} />
-          <Route path="/notes" element={<NotesList />} />
-          <Route path="/note/:id" element={<NoteContent />} />
+         
           {/* Ui Elements */}
           {/* <Route path="/alerts" element={<Alerts />} />
           <Route path="/avatars" element={<Avatars />} />
@@ -171,7 +183,7 @@ export default function App() {
         {/* Auth Layout */}
         <Route path="/signin" element={<PublicRoute element={<SignIn />} />} />
         <Route path="/signup" element={<PublicRoute element={<SignUp />} />} />
-
+        <Route path="/verify-email" element={<VerifyEmail />} />
         {/* Fallback Route */}
         <Route path="*" element={<NotFound />} />
       </Routes>

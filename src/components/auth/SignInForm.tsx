@@ -5,9 +5,10 @@ import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import Button from "../ui/button/Button";
-import {  signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import {  sendEmailVerification, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../../firebase.ts";
 import { useAuthStore } from "../store/useAuthStore.ts";
+import toast from "react-hot-toast";
 
 export default function SignInForm() {
   const [email, setEmail] = useState<string>("");
@@ -16,6 +17,7 @@ export default function SignInForm() {
   const [isChecked, setIsChecked] = useState(false);
   const [error, setError] = useState<string | null>(null); // To display error messages.
   const navigate = useNavigate();
+  const [loading,setLoading]=useState(false);
   const setUser = useAuthStore((state:any) => state.setUser);
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,17 +27,19 @@ export default function SignInForm() {
       setError("Please enter both email and password.");
       return;
     }
-
+    setLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
        const user = userCredential.user; 
-       setUser(user) 
-      /* console.log("User signed in:", user); */
-      // Redirect to the dashboard or another page upon successful sign-in.
+       
+       setUser(user); 
+      setLoading(false);
      if(userCredential.user) navigate('/'); // Change '/dashboard' to your desired route.
     } catch (error: any) {
       setError(error.message); // Set the error message to be displayed.
       console.error("Error signing in:", error);
+      setLoading(false);
+      
     }
   };
   const handleGoogleSignIn = async () => {
@@ -49,11 +53,10 @@ export default function SignInForm() {
      
     } catch (error:any) {
       console.error('Error during Google sign-in:', error);
-      setError(error.message);
-      
+      toast.error("Error occured in signin! Try again...")
     }
   };
-
+  
   return (
     <div className="flex flex-col flex-1">
       <div className="w-full max-w-md pt-10 mx-auto">
