@@ -149,35 +149,21 @@ export default function App() {
         <Route element={<ProtectedRoute element={<AppLayout />} />}>
         
           <Route index path="/" element={<Home />} />
-          {/* Others Page */}
+          
           <Route path="/profile" element={<UserProfiles />} />
           <Route path="/calendar" element={<Calendar />} />
-          {/*             <Route path="/blank" element={<Blank />} />
-           */}{" "}
-          {/* Forms */}
-          {/*   <Route path="/form-elements" element={<FormElements />} /> */}
+  
           <Route path="/communities" element={<CommunityPage />} />
           <Route path="/create-community" element={<CreateCommunityPage />} />
           <Route path="/join-community" element={<JoinCommunityPage />} />
           <Route path="/feed" element={<FormElements />} />
           <Route path="/forum/:id" element={<FormElements />} />
           <Route path="/money" element={<FinanceDashboard />} />
-          <Route path="/form-elements" element={<FormElementsdefault />} />
-          {/* Tables */}
-          {/*             <Route path="/basic-tables" element={<BasicTables />} />
-           */}{" "}
+        
+   
           <Route path="/tasks" element={<BasicTables />} />
          
-          {/* Ui Elements */}
-          {/* <Route path="/alerts" element={<Alerts />} />
-          <Route path="/avatars" element={<Avatars />} />
-          <Route path="/badge" element={<Badges />} />
-          <Route path="/buttons" element={<Buttons />} />
-          <Route path="/images" element={<Images />} />
-          <Route path="/videos" element={<Videos />} />
-          {/* Charts */}
-          {/* <Route path="/line-chart" element={<LineChart />} />
-          <Route path="/bar-chart" element={<BarChart />} />  */}
+      
         </Route>
 
         {/* Auth Layout */}
