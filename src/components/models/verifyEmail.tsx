@@ -1,5 +1,5 @@
-import { sendEmailVerification, signOut } from "firebase/auth";
-import { useEffect, useState } from "react";
+import { sendEmailVerification } from "firebase/auth";
+import {  useState } from "react";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../store/useAuthStore";
 import { auth } from "@/firebase";

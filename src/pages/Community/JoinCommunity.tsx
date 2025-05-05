@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect,  } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PageMeta from "@/components/common/PageMeta";
 import useForumStore from "@/components/store/communityStore";
 import { useAuthStore } from "@/components/store/useAuthStore";
-import { Navigate, useNavigate } from "react-router";
+import {  useNavigate } from "react-router";
 
 export default function JoinCommunityPage() {
   // All available communities
   const navigate = useNavigate();
-  const { communities, getCommunities, loading, joinCommunity } =
+  const { communities, getCommunities, joinCommunity } =
     useForumStore();
   const { authUser } = useAuthStore();
   useEffect(() => {
@@ -19,6 +19,7 @@ export default function JoinCommunityPage() {
   }, []);
 
   const handleJoinCommunity = (id: string) => {
+    if(authUser?.uid)
     joinCommunity(id, authUser.uid);
     navigate("/communities");
   };

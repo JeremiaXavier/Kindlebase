@@ -75,7 +75,7 @@ export function AddTransactionModal({
                   setForm({ ...form, amount: parseInt(e.target.value) })
                 }
                 placeholder="Enter amount"
-                required
+                
               />
             </div>
             <div>
@@ -98,16 +98,7 @@ export function AddTransactionModal({
                 placeholder="e.g. Groceries, Salary"
               />
             </div>
-            {/* <div className="lg:col-span-2">
-              <Label>Description</Label>
-              <TextArea
-                value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
-                placeholder="Optional description"
-              />
-            </div> */}
+
           </div>
           <div className="flex items-center justify-end gap-3 mt-6">
             <Button

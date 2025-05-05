@@ -1,10 +1,8 @@
 import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
-import { useEffect, useState } from "react";
-import { Dropdown } from "../ui/dropdown/Dropdown";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import { MoreDotIcon } from "../../icons";
-import { useFinanceStore } from "../store/financeStore";
+import { useEffect } from "react";
+
+import { useFinanceStore } from "@/components/store/financeStore";
 
 export default function MonthlyTarget() {
   const {

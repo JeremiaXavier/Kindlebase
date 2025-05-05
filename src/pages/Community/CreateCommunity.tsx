@@ -28,6 +28,7 @@ export default function CreateCommunityPage() {
       alert("Please fill all required fields");
       return;
     }
+    if(!authUser?.uid) return
     try {
       const newCommunity = {
         name,

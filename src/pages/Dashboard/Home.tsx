@@ -1,7 +1,7 @@
 import { useSidebar } from "@/context/SidebarContext";
-import PageMeta from "../../components/common/PageMeta";
-import EcommerceMetrics from "../../components/ecommerce/EcommerceMetrics";
-import MonthlyTarget from "../../components/ecommerce/MonthlyTarget";
+import PageMeta from "@/components/common/PageMeta";
+import EcommerceMetrics from "@/components/ecommerce/EcommerceMetrics";
+import MonthlyTarget from "@/components/ecommerce/MonthlyTarget";
 import RecentOrders from "@/components/ecommerce/RecentOrders";
 
 export default function Home() {

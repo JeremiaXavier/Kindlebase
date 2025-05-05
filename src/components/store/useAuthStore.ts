@@ -4,23 +4,22 @@ import { db } from "@/firebase.ts";
 
 export interface User {
   bio?: string;
-  createdAt: string;
-  displayName: string;
-  email: string;
-  facebook: string;
-  instagram: string;
-  linkedin: string;
-  name: string;
-  phoneNumber: string;
-  photoURL: string;
-  provider: string;
-  twitter: string;
-  emailVerified:boolean;
-  uid: string;
-  createdCommunities: string[];
-  joinedCommunities: string[];
+  displayName: string|null;
+  email: string|null;
+  facebook?: string|null;
+  instagram?: string|null;
+  linkedin?: string|null;
+  
+  phoneNumber?: string|null;
+  photoURL?: string|null;
+  provider?: string|null;
+  twitter?: string|null;
+  emailVerified?:boolean|null;
+  uid: string|null;
+  createdCommunities?: string[]|null;
+  joinedCommunities?: string[]|null;
 
-  role: string;
+  role?: string;
 }
 
 interface AuthState {

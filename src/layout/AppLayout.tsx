@@ -1,11 +1,8 @@
 import { SidebarProvider, useSidebar } from "../context/SidebarContext";
 import { Outlet } from "react-router";
-import AppHeader from "./AppHeader";
-import Backdrop from "./Backdrop";
-import AppSidebar from "./AppSidebar";
-import { useState } from "react";
-import { auth } from "@/firebase";
-import Alert from "@/components/ui/alert/Alert";
+import Backdrop from "@/layout/Backdrop";
+import AppSidebar from "@/layout/AppSidebar";
+import AppHeader from "@/layout/AppHeader";
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();

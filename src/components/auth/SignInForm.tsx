@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
-import Label from "../form/Label";
-import Input from "../form/input/InputField";
-import Checkbox from "../form/input/Checkbox";
-import Button from "../ui/button/Button";
-import {  sendEmailVerification, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../../firebase.ts";
-import { useAuthStore } from "../store/useAuthStore.ts";
+import {  EyeCloseIcon, EyeIcon } from "@/icons";
+import Label from "@/components/form/Label";
+import Input from "@/components/form/input/InputField";
+import Checkbox from "@/components/form/input/Checkbox";
+import Button from "@/components/ui/button/Button";
+import {  signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "@/firebase.ts";
+import { useAuthStore } from "@/components/store/useAuthStore.ts";
 import toast from "react-hot-toast";
 
 export default function SignInForm() {
@@ -17,8 +17,8 @@ export default function SignInForm() {
   const [isChecked, setIsChecked] = useState(false);
   const [error, setError] = useState<string | null>(null); // To display error messages.
   const navigate = useNavigate();
-  const [loading,setLoading]=useState(false);
-  const setUser = useAuthStore((state:any) => state.setUser);
+
+  const setUser = useAuthStore((state) => state.setUser);
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null); // Clear any previous errors.
@@ -27,18 +27,22 @@ export default function SignInForm() {
       setError("Please enter both email and password.");
       return;
     }
-    setLoading(true);
+    
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
        const user = userCredential.user; 
-       
+      
        setUser(user); 
-      setLoading(false);
+      
      if(userCredential.user) navigate('/'); // Change '/dashboard' to your desired route.
-    } catch (error: any) {
-      setError(error.message); // Set the error message to be displayed.
-      console.error("Error signing in:", error);
-      setLoading(false);
+    } catch (error:unknown) {
+      if (error instanceof Error) {
+        setError(error.message); // Now TypeScript knows it has a 'message' property
+        console.error("Error signing in:", error);
+      } else {
+        setError('An unknown error occurred.');
+        console.error("An unknown error occurred:", error);
+      }
       
     }
   };
@@ -51,8 +55,14 @@ export default function SignInForm() {
       if(result.user) navigate('/'); 
       console.log('User signed in:');
      
-    } catch (error:any) {
-      console.error('Error during Google sign-in:', error);
+    } catch (error:unknown) {
+      if (error instanceof Error) {
+        setError(error.message); // Now TypeScript knows it has a 'message' property
+        console.error("Error signing in:", error);
+      } else {
+        setError('An unknown error occurred.');
+        console.error("An unknown error occurred:", error);
+      }
       toast.error("Error occured in signin! Try again...")
     }
   };

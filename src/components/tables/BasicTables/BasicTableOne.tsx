@@ -29,7 +29,7 @@ export default function BasicTableOne() {
     
   }, []);
   const showConfirmation = useConfirmation(); // Handle the delete action
-  const handleDelete = (task) => {
+  const handleDelete = (task:Task) => {
     showConfirmation({
       message: "Are you sure you want to delete this item?",
       title: "Delete Item",
@@ -124,7 +124,7 @@ export default function BasicTableOne() {
                           ? "error"
                           : task.priority === "Medium"
                           ? "warning"
-                          : "secondary"
+                          : "dark"
                       }
                     >
                       {task.priority}
@@ -135,7 +135,7 @@ export default function BasicTableOne() {
                       size="sm"
                       color={
                         task.status === "To Do"
-                          ? "secondary"
+                          ? "primary"
                           : task.status === "In Progress"
                           ? "warning"
                           : "success"

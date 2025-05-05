@@ -69,7 +69,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       console.log("task is fetched");
     }
     try {
-      const userTasksRef = collection(db, "tasks", authUser.uid, "dailyTasks");
+      if(authUser.uid){const userTasksRef = collection(db, "tasks", authUser.uid, "dailyTasks");
       const snapshot = await getDocs(userTasksRef);
       let allTasks: Task[] = [];
 
@@ -85,7 +85,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         }
       });
 
-      set({ tasks: allTasks, loading: false });
+      set({ tasks: allTasks, loading: false });}
     } catch (error) {
       console.error("Error fetching tasks:", error);
       set({ loading: false });
@@ -101,7 +101,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     }
 
     try {
-      const date = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+      if(authUser.uid){const date = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
       const taskId = crypto.randomUUID();
       const newTask: Task = {
         id: taskId,
@@ -125,7 +125,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       set((state) => ({
         tasks: [newTask, ...state.tasks],
         addTaskLoading: false,
-      }));
+      }));}
     } catch (error) {
       console.error("Error adding task:", error);
       set({ addTaskLoading: false });
@@ -137,7 +137,8 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     set({ updateTaskLoading: true });
 
     try {
-      const dayDocRef = doc(db, "tasks", authUser.uid, "dailyTasks", date);
+      if(authUser?.uid){
+      const dayDocRef = doc(db, "tasks", authUser?.uid, "dailyTasks", date);
       const dayDocSnap = await getDoc(dayDocRef);
 
       if (!dayDocSnap.exists()) {
@@ -162,7 +163,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
           t.id === taskId ? { ...t, ...updatedTask } : t
         ),
         updateTaskLoading: false,
-      }));
+      }));}
     } catch (error) {
       console.error("Error updating task:", error);
       set({ updateTaskLoading: false });
@@ -178,6 +179,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     }
 
     try {
+      if(authUser.uid){
       const dayDocRef = doc(db, "tasks", authUser.uid, "dailyTasks", date);
       const dayDocSnap = await getDoc(dayDocRef);
 
@@ -194,7 +196,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       set((state) => ({
         tasks: state.tasks.filter((t) => t.id !== taskId),
         deleteTaskLoading: false,
-      }));
+      }));}
     } catch (error) {
       console.error("Error deleting task:", error);
       set({ deleteTaskLoading: false });

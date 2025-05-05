@@ -5,11 +5,11 @@ import Button from "@/components/ui/button/Button";
 import Avatar from "@/components/ui/avatar/Avatar";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/utils";
-import { MailIcon, PaperPlaneIcon, PencilIcon, UserCircleIcon } from "@/icons";
-import InviteFriendModal from "@/components/models/InviteModel";
-import useChatStore, { Post, Reply } from "@/components/store/chatStore";
+import {PaperPlaneIcon } from "@/icons";
+import useChatStore, { Reply } from "@/components/store/chatStore";
 import { useAuthStore } from "@/components/store/useAuthStore";
 import { useParams } from "react-router";
+import { ReplyIcon, ThumbsUp } from "lucide-react";
 
 export default function FormElements() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -26,23 +26,25 @@ export default function FormElements() {
 
     if (replyToPostId) {
       // Submit as reply
-      const newReply: Reply = {
-        userId: authUser.uid,
+      const newReply: Omit<Reply,"id"> = {
+        userId: authUser?.uid||null,
         userName: authUser?.displayName || "",
         userAvatar: authUser?.photoURL || "",
         content: message,
+        timestamp:"",
+        likes:0,
       };
       addReply(replyToPostId, newReply, communityId || null);
 
       setReplyToPostId(null); // Reset reply state
     } else {
       // Submit as new post
-
+if(authUser) if(communityId)
       createPost(
         message,
         authUser?.uid,
-        authUser?.displayName,
-        authUser?.photoURL,
+        authUser?.displayName||"",
+        authUser?.photoURL||"",
         communityId
       );
     }
@@ -64,6 +66,7 @@ export default function FormElements() {
   };
 
   const handleLikeReply = (postId: string, replyId: string) => {
+    if(communityId)
     likeReply(postId, replyId, communityId);
   };
   useEffect(() => {
@@ -77,7 +80,7 @@ export default function FormElements() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [posts]);
-  const [isInviteOpen, setIsInviteOpen] = useState(false);
+
   return (
     <>
       <PageMeta
@@ -86,24 +89,9 @@ export default function FormElements() {
       />
 
       <PageBreadcrumb pageTitle="Community chat" />
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setIsInviteOpen(true)}
-        className="hover:bg-blue-100 dark:hover:bg-gray-800 fixed right-1 top-1/2 p-4 bg-blue-500"
-      >
-        <UserCircleIcon className="h-5 w-5 text-gray-900" />
-      </Button>
+      
 
-      <InviteFriendModal
-        isOpen={isInviteOpen}
-        onClose={() => setIsInviteOpen(false)}
-        onSend={(email) => {
-          // Handle sending invite here (e.g., API call)
-          alert("invitation send");
-          console.log("Sending invite to:", email);
-        }}
-      />
+      
       <div className="flex flex-col flex-1 bg-transparent dark:bg-gray-900 rounded-lg overflow-hidden">
         <div className="flex flex-col flex-1 max-h-[calc(100vh-200px)] min-h-[calc(100vh-200px)]">
           {/* Message List */}
@@ -113,20 +101,20 @@ export default function FormElements() {
                 key={post.id}
                 className={cn(
                   "flex w-full",
-                  post.isCurrentUser ? "justify-start" : "justify-start"
+                  post ? "justify-start" : "justify-start"
                 )}
               >
                 <div className="flex items-start gap-3 max-w-[80%]">
                   <Avatar
                     src={post.userAvatar}
                     size="medium"
-                    className="mt-1"
+                    
                   />
                   <div className="flex flex-col space-y-1 w-full">
                     <div
                       className={cn(
                         "px-4 py-3 rounded-lg border whitespace-pre-wrap shadow",
-                        post.userId === authUser.uid
+                        post.userId === authUser?.uid
                           ? "bg-blue-500 text-white border-blue-500"
                           : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
                       )}
@@ -139,30 +127,27 @@ export default function FormElements() {
 
                     {/* Timestamp and actions */}
                     <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 ml-2">
-                      <span>{post.timestamp}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                      <span>{post.timestamp.toString()}</span>
+                      <div
+                        
                         onClick={() => handleLikePost(post.id)}
                       >
-                        <PencilIcon className="h-4 w-4" />
-                      </Button>
+                        <ThumbsUp className="h-4 w-4" />
+                      </div>
                       {post.likes}
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                      <div
+                        
                         onClick={() => toggleReplies(post.id)}
                       >
-                        <MailIcon className="h-4 w-4" />
-                      </Button>
+                        Replies
+                      </div>
                       {post.replies.length}
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                      <div
+                        
                         onClick={() => setReplyToPostId(post.id)}
                       >
-                        <MailIcon className="h-4 w-4" />
-                      </Button>
+                        <ReplyIcon className="h-4 w-4" />
+                      </div>
                     </div>
 
                     {/* 🟩 Replies */}
@@ -176,7 +161,7 @@ export default function FormElements() {
                             <Avatar
                               src={reply.userAvatar}
                               size="small"
-                              className="mt-1"
+                              
                             />
 
                             <div className="flex flex-col">
@@ -184,7 +169,7 @@ export default function FormElements() {
                               <div
                                 className={cn(
                                   "px-4 py-3 rounded-lg border whitespace-pre-wrap shadow",
-                                  reply.userId === authUser.uid
+                                  reply.userId === authUser?.uid
                                     ? "bg-blue-500 text-white border-blue-500"
                                     : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
                                 )}
@@ -197,16 +182,15 @@ export default function FormElements() {
 
                               {/* Footer below bubble */}
                               <div className="flex items-center text-xs text-gray-500 mt-1 gap-2 ml-2">
-                                <span>{reply.timestamp}</span>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
+                                <span>{reply.timestamp.toString()}</span>
+                                <div
+                                  
                                   onClick={() =>
                                     handleLikeReply(post.id, reply.id)
                                   }
                                 >
-                                  <PencilIcon className="w-4 h-4" />
-                                </Button>
+                                  <ThumbsUp className="w-4 h-4" />
+                                </div>
                                 <span>{reply.likes} likes</span>
                               </div>
                             </div>
@@ -266,19 +250,3 @@ export default function FormElements() {
     </>
   );
 }
-/* <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <div className="space-y-6">
-          <DefaultInputs />
-          <SelectInputs />
-          <TextAreaInput />
-          <InputStates />
-        </div>
-        <div className="space-y-6">
-          <InputGroup />
-          <FileInputExample />
-          <CheckboxComponents />
-          <RadioButtons />
-          <ToggleSwitch />
-          <DropzoneComponent />
-        </div>
-      </div> */

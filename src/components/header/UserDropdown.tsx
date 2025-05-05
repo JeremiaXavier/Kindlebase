@@ -16,7 +16,7 @@ export default function UserDropdown() {
   const setUser = useAuthStore((set)=>set.setUser);
   const navigate = useNavigate();
   const {authUser}= useAuthStore();
-  const {eventLogOut} = useEventStore();
+  const {eventLogout} = useEventStore();
   const {logoutChat}=useChatStore();
   const {logoutCommunity} = useForumStore();
   const {logOutFinance} = useFinanceStore();
@@ -31,7 +31,7 @@ export default function UserDropdown() {
   }
   const handleLogout = async () => {
     try {
-      eventLogOut();
+      eventLogout();
       logOutFinance();
       logOutTask();
       logoutChat();

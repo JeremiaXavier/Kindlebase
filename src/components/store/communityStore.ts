@@ -1,17 +1,13 @@
 import { create } from "zustand";
 import {
   doc,
-  setDoc,
-  getDoc,
-  updateDoc,
+
   collection,
   getDocs,
   query,
-  orderBy,
-  limit,
-  deleteDoc,
+
   where,
-  startAfter,
+ 
   runTransaction,
   documentId,
 } from "firebase/firestore";
@@ -47,7 +43,7 @@ interface ForumState {
   logoutCommunity:()=>Promise<void>
 }
 
-const useForumStore = create<ForumState>((set, get) => ({
+const useForumStore = create<ForumState>((set) => ({
   
   myCommunities: [],
   communities: [],
@@ -103,7 +99,7 @@ const useForumStore = create<ForumState>((set, get) => ({
       if (authUser) {
         setUser({
           ...authUser,
-          createdCommunities: [...authUser.createdCommunities, communityId],
+          createdCommunities: [ ...(authUser.createdCommunities ?? []), communityId],
          
         });
       }
@@ -138,7 +134,7 @@ const useForumStore = create<ForumState>((set, get) => ({
 
         if (userDoc.exists()) {
           const userData = userDoc.data() as User;
-          if (!userData.joinedCommunities.includes(id)) {
+          if (!(userData.joinedCommunities??[]).includes(id)) {
             transaction.update(userDocRef, {
               joinedCommunities: [...(userData.joinedCommunities || []), id],
             });
@@ -149,7 +145,7 @@ const useForumStore = create<ForumState>((set, get) => ({
      if (authUser) {
         setUser({
           ...authUser,
-          joinedCommunities: [...authUser.joinedCommunities, id],
+          joinedCommunities: [...(authUser.joinedCommunities??[]), id],
          
         });
     }
@@ -186,7 +182,7 @@ const useForumStore = create<ForumState>((set, get) => ({
 
         if (userDoc.exists()) {
           const userData = userDoc.data() as User;
-          const updatedJoinedCommunities = userData.joinedCommunities.filter(
+          const updatedJoinedCommunities = (userData.joinedCommunities??[]).filter(
             (cId) => cId !== id
           );
           transaction.update(userDocRef, {
@@ -199,7 +195,7 @@ const useForumStore = create<ForumState>((set, get) => ({
         user: authUser
           ? {
               ...authUser,
-              joinedCommunities: authUser.joinedCommunities.filter(
+              joinedCommunities: (authUser.joinedCommunities??[]).filter(
                 (cId) => cId !== id
               ),
             }

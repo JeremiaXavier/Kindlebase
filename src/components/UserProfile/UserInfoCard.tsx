@@ -5,7 +5,7 @@ import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import { useAuthStore } from "../store/useAuthStore";
 import { useEffect, useState } from "react";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase";
 
 export default function UserInfoCard() {
@@ -37,7 +37,7 @@ export default function UserInfoCard() {
       });
     }
   }, [authUser]);
-  const handleSave = async (e) => {
+  const handleSave = async (e:React.FormEvent) => {
     e.preventDefault();
     if (authUser && authUser.uid) {
        // Get Firestore instance

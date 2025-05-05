@@ -17,6 +17,9 @@ export default defineConfig({
     }),tailwindcss()
 
   ],
+  build: {
+    outDir: 'dist', // Change the output directory to 'public'
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

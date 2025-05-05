@@ -1,5 +1,4 @@
 // Simplified example (similar to clsx/tailwind-merge)
-import { Descendant } from 'slate';
 export function cn(...inputs: any[]) {
     let className = '';
     for (let i = 0; i < inputs.length; i++) {

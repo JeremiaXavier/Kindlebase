@@ -22,21 +22,21 @@ import { db } from "../../firebase"; // Adjust the path if needed
 
 export interface Reply {
   id: string;
-  userId: string;
-  userName: string;
-  userAvatar: string;
-  content: string;
+  userId: string|null;
+  userName: string|null;
+  userAvatar: string|null;
+  content: string|null;
   timestamp: string | FieldValue;
   likes: number;
 }
 
 export interface Post {
   id: string;
-  userId: string;
+  userId: string|null;
   userName: string;
   userAvatar: string;
   content: string;
-  timestamp: string | FieldValue;
+  timestamp: string | FieldValue | Date;
   likes: number;
   replies: Reply[];
 }
@@ -49,7 +49,7 @@ interface ChatStore {
   fetchPosts: (communityId: string) => Promise<void>;
   createPost: (
     content: string,
-    userId: string,
+    userId: string|null,
     userName: string,
     userAvatar: string,
     communityId: string
@@ -68,7 +68,7 @@ interface ChatStore {
   lastFetchedMessageDoc: any | null;
   hasMoreMessages: boolean;
   loadMoreMessages: (communityId: string) => Promise<void>;
-  resetMessages: (communityId: string) => void;
+  resetMessages: () => void;
   logoutChat:()=>Promise<void>
 }
 
@@ -79,7 +79,7 @@ const useChatStore = create<ChatStore>((set, get) => ({
 
   lastFetchedMessageDoc: null,
   hasMoreMessages: true,
-  resetMessages: (communityId) => {
+  resetMessages: () => {
     set({ posts: [], lastFetchedMessageDoc: null, hasMoreMessages: true });
   },
   fetchPosts: async (communityId) => {

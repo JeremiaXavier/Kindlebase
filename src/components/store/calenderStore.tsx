@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { collection, doc, setDoc, getDocs, deleteDoc, Timestamp, query, where, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, getDocs, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase'; // Adjust the path if needed
-import { useAuthStore, User } from './useAuthStore';
+import { useAuthStore,  } from './useAuthStore';
 import { EventInput } from '@fullcalendar/core/index.js';
 
 export interface CalendarEvent extends EventInput {
@@ -26,7 +26,7 @@ interface EventState {
   addEvent: (event: Omit<CalendarEvent,"id" | "date">) => Promise<void>;
   updateEvent: (date:string,eventId: string, updates: Partial<CalendarEvent>) => Promise<void>;
   deleteEvent: (date:string,eventId: string) => Promise<void>;
-  eventLogOut:()=>Promise<void>
+  eventLogout:()=>Promise<void>
 }
 
 const useEventStore = create<EventState>((set, get) => ({
@@ -49,26 +49,26 @@ const useEventStore = create<EventState>((set, get) => ({
       console.log("event not find");
     }
     try {
-      // Query the 'events' collection, filtering by userId
-      const eventsRef = collection(db, 'events',authUser.uid,"dailyEvents",);
-      const querySnapshot = await getDocs(eventsRef);
-      let allEvents: CalendarEvent[] = [];
-
-      querySnapshot.forEach((doc) => {
-        const eventData = doc.data();
-        const date = doc.id;
-        if(eventData.events){
-          const eventsWithDate = eventData.events.map((event:any)=>({
-            ...event,
-            date,
-          }));
-          allEvents = [...allEvents, ...eventsWithDate]
-        }
-
-        console.log(eventData);
-        
-      });
-      set({ events: allEvents, loading: false });
+      if(authUser.uid){const eventsRef = collection(db, 'events',authUser.uid,"dailyEvents",);
+        const querySnapshot = await getDocs(eventsRef);
+        let allEvents: CalendarEvent[] = [];
+  
+        querySnapshot.forEach((doc) => {
+          const eventData = doc.data();
+          const date = doc.id;
+          if(eventData.events){
+            const eventsWithDate = eventData.events.map((event:any)=>({
+              ...event,
+              date,
+            }));
+            allEvents = [...allEvents, ...eventsWithDate]
+          }
+  
+          console.log(eventData);
+          
+        });
+        set({ events: allEvents, loading: false });}
+      
     } catch (error: any) {
       set({ error: error.message, loading: false });
       throw error;
@@ -81,7 +81,7 @@ const useEventStore = create<EventState>((set, get) => ({
       set({ loading: false, error: "User not authenticated" });
       return; // Or redirect to login
     }
-    try {
+    try {if(authUser.uid){
       const currentDate = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
       const newEventId = crypto.randomUUID();
       const newEvent: CalendarEvent = {
@@ -109,7 +109,7 @@ const useEventStore = create<EventState>((set, get) => ({
       set((state) => ({
         events: [...state.events, newEvent], // Add the *new* event, with the generated ID
         loading: false
-      }));
+      }));}
     } catch (error: any) {
       set({ error: error.message, loading: false });
       console.log(error.message);
@@ -125,7 +125,7 @@ const useEventStore = create<EventState>((set, get) => ({
     }
 
     try {
-      const dayDocRef = doc(db, 'events', authUser.uid, "dailyEvents", date); // Corrected doc path
+      if(authUser.uid){const dayDocRef = doc(db, 'events', authUser.uid, "dailyEvents", date); // Corrected doc path
       const dayDocSnap = await getDoc(dayDocRef);
       
       //  handle updates to start and end.
@@ -138,22 +138,14 @@ const useEventStore = create<EventState>((set, get) => ({
         throw new Error("Event not Found");
       }
       events[eventIndex]={...events[eventIndex],...updatedEvent};
-/*       const updateData: Partial<CalendarEvent> = { ...updates }; */
-      /* if (updates.start) {
-        updateData.start = Timestamp.fromDate(new Date(updates.start));
-      }
-      if (updates.end && updates.end !== null) {
-        updateData.end = Timestamp.fromDate(new Date(updates.end));
-      } else if (updates.end === null) {
-        updateData.end = null;
-      } */
+
       await updateDoc(dayDocRef, {events});
       set(state => ({
         events: state.events.map((event) =>
           event.id === eventId ? { ...event, ...updatedEvent } : event
         ),
         loading: false
-      }));
+      }));}
     } catch (error: any) {
       set({ error: error.message, loading: false });
       throw error;
@@ -167,7 +159,7 @@ const useEventStore = create<EventState>((set, get) => ({
       return; // Or handle error
     }
     try {
-      const dayDocRef = doc(db, 'events',authUser.uid, "dailyEvents", date); // Use eventId
+      if(authUser.uid){const dayDocRef = doc(db, 'events',authUser.uid, "dailyEvents", date); // Use eventId
       const dayDocSnap = await getDoc(dayDocRef);
       if(!dayDocSnap.exists()){
         throw new Error("Event not found");
@@ -175,17 +167,15 @@ const useEventStore = create<EventState>((set, get) => ({
       const events = dayDocSnap.data().events as CalendarEvent[];
       const updatedEvents = events.filter((ev)=>ev.id !==eventId);
       await updateDoc(dayDocRef,{events:updatedEvents});
-      set((state) => ({ events: state.events.filter(event => event.id !== eventId), loading: false }));
+      set((state) => ({ events: state.events.filter(event => event.id !== eventId), loading: false }));}
     } catch (error: any) {
       set({ error: error.message, loading: false });
       console.log(error.message);
       throw error;
     }
   },
-  eventLogOut:async()=>{
-    set(()=>({
-      events:[],
-    }))
+  eventLogout:async()=>{
+    set({events:[]});
   }
 }));
 

@@ -7,14 +7,14 @@ import { PencilIcon } from "@/icons";
 import CreateTaskModal from "@/components/models/TaskCreator";
 import { useState } from "react";
 
-interface Task {
+/* interface Task {
   id: number;
   title: string;
   dueDate: string;
   priority: "Low" | "Medium" | "High";
   status: "To Do" | "In Progress" | "Completed";
   category?: string;
-}
+} */
 
 export default function BasicTables() {
   const [isModalOpen, setIsModalOpen] = useState(false);

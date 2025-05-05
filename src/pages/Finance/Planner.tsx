@@ -5,112 +5,35 @@ import Button from "@/components/ui/button/Button";
 
 import { AddTransactionModal } from "@/components/finance/AddTransactionModel";
 import { useTheme } from "@/context/ThemeContext";
-import { PencilIcon, TrashBinIcon } from "@/icons";
-import { Transaction, useFinanceStore } from "@/components/store/financeStore";
+import {  Transaction, useFinanceStore } from "@/components/store/financeStore";
 import { useConfirmation } from "@/context/confirmProvider";
 
 // Dynamically import ReactApexChart to avoid SSR issues
 const ReactApexChart = React.lazy(() => import("react-apexcharts"));
 // Sample data
 
-const GoalItem = ({ goal, onDelete, onUpdateProgress }) => {
-  const { name, goalType, targetAmount, currentAmount, deadline } = goal;
-  const progress = (currentAmount / targetAmount) * 100;
 
-  return (
-    <div className="bg-white dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-md mb-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">
-            {name}
-          </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-300">
-            <strong>Type:</strong> {goalType}
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-300">
-            <strong>Target:</strong> ₹{targetAmount}
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-300">
-            <strong>Current:</strong> ₹{currentAmount}
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-300">
-            <strong>Deadline:</strong>{" "}
-            {new Date(deadline.seconds * 1000).toLocaleDateString()}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => onUpdateProgress(goal)}
-            className="flex items-center gap-1 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700 transition"
-          >
-            <PencilIcon className="h-4 w-4" />
-            Update
-          </button>
-          <button
-            onClick={() => onDelete(goal.id)}
-            className="flex items-center gap-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition"
-          >
-            <TrashBinIcon className="h-4 w-4" />
-            Delete
-          </button>
-        </div>
-      </div>
 
-      {/* Progress bar */}
-      <div className="mt-4">
-        <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">
-          Progress: {progress.toFixed(2)}%
-        </p>
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-          <div
-            className="bg-green-500 h-3 rounded-full"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export default function FinanceDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [goals, setGoals] = useState("");
+  /* const [goals, setGoals] = useState(""); */
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction| null>(null);
   const {
     transactions,
-    addTransaction,
+    
     fetchTransaction,
-    updateTransaction,
+    
     deleteTransaction,
-    fetchGoal,
-    addGoal,
-    updateGoal,
-    deleteGoal,
+    
   } = useFinanceStore();
   useEffect(() => {
     if (transactions && transactions.length === 0) {
       fetchTransaction();
     }
   }, []);
-  const handleAddTransaction = (data) => {};
+ 
 
-  /*  const handleAddGoal = (goalData) => {
-    const newGoal = { id: Date.now(), ...goalData };
-    setGoals([newGoal, ...goals]);
-  };
- */
-  /*   const handleDeleteGoal = (goalId) => {
-    setGoals(goals.filter((goal) => goal.id !== goalId));
-  };
- */
-  /*   const handleUpdateGoalProgress = (goalToUpdate) => {
-    const updatedGoals = goals.map((goal) =>
-      goal.id === goalToUpdate.id
-        ? { ...goal, currentAmount: goal.currentAmount + 10000 } // Example: Increase progress
-        : goal
-    );
-    setGoals(updatedGoals);
-  }; */
 
   const income = transactions.filter((t) => t.type === "income");
   const expense = transactions.filter((t) => t.type === "expense");
@@ -120,10 +43,12 @@ export default function FinanceDashboard() {
   const balance = totalIncome - totalExpense;
 
   // Pie Chart Data
-  const expenseCategories = expense.reduce((acc, curr) => {
-    acc[curr.category] = (acc[curr.category] || 0) + Number(curr.amount);
+  const expenseCategories = expense.reduce((acc, curr): { [key: string]: number } => {
+    const category = curr.category ?? 'uncategorized'; // Provide a default
+    acc[category] = (acc[category] || 0) + Number(curr.amount);
     return acc;
-  }, {});
+  }, {} as { [key: string]: number });
+
   const pieLabels = Object.keys(expenseCategories);
   const pieSeries = Object.values(expenseCategories);
   const { theme } = useTheme();
@@ -253,26 +178,7 @@ export default function FinanceDashboard() {
           </div>
         </div>
 
-        {/* Goals Section */}
-        <div className="mb-8">
-          <h4 className="text-lg font-semibold mb-4 dark:text-white">
-            Your Goals
-          </h4>
-          {goals.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              No goals set yet.
-            </p>
-          ) : (
-            goals.map((goal) => (
-              <GoalItem
-                key={goal.id}
-                goal={goal}
-                onDelete={handleDeleteGoal}
-                onUpdateProgress={handleUpdateGoalProgress}
-              />
-            ))
-          )}
-        </div>
+     
 
         {/* Add Transaction Button */}
         <div className="flex justify-end mb-4">

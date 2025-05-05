@@ -1,11 +1,17 @@
 import { useState } from "react";
-import { Modal } from "../ui/modal";
-import Label from "../form/Label";
-import Input from "../form/input/InputField";
-import Button from "../ui/button/Button";
+import { Modal } from "@/components/ui/modal";
+import Label from "@/components/form/Label";
+import Input from "@/components/form/input/InputField";
+import Button from "@/components/ui/button/Button";
 
+interface InviteFriendModalProps {
+  isOpen: boolean;
+  onClose: () => void; // Function that takes no arguments and returns void
+  onSend: (recipientEmail: string) => void; // Function that takes a string and returns void (or potentially a Promise)
+  // Add any other props your modal might receive
+}
 
-export default function InviteFriendModal({ isOpen, onClose, onSend }) {
+export default function InviteFriendModal({ isOpen, onClose, onSend }: InviteFriendModalProps) {
   const [email, setEmail] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -34,7 +40,7 @@ export default function InviteFriendModal({ isOpen, onClose, onSend }) {
               placeholder="example@domain.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
+              
             />
           </div>
           <div className="flex justify-end gap-3">

@@ -1,9 +1,9 @@
 import {
-  BrowserRouter as Router,
+ 
   Routes,
   Route,
   Navigate,
-  useNavigate,
+
 } from "react-router";
 import { Toaster } from "react-hot-toast";
 import SignIn from "./pages/AuthPages/SignIn";
@@ -27,18 +27,15 @@ import CommunityPage from "./pages/Forms/CommunityList";
 import JoinCommunityPage from "./pages/Community/JoinCommunity";
 import CreateCommunityPage from "./pages/Community/CreateCommunity";
 import FinanceDashboard from "./pages/Finance/Planner";
-import FormElementsdefault from "./pages/Forms/FormElements-copy";
-import NotesList from "./pages/Notes/NoteList";
-import NoteContent from "./pages/Notes/NoteContent";
+
 import VerifyEmail from "./components/models/verifyEmail";
 import Alert from "./components/ui/alert/Alert";
-import NoteCreate from "./pages/Notes/createNote";
+
 
 export default function App() {
   const [loading, setLoading] = useState(true);
   const setUser = useAuthStore((state) => state.setUser);
   const { authUser } = useAuthStore();
-   const [verified,setVerified] = useState(false);
 
   useEffect(() => {
     const auth = getAuth();
@@ -65,6 +62,7 @@ export default function App() {
             email: currentUser.email,
             photoURL: currentUser.photoURL || null,
             provider: currentUser.providerData[0]?.providerId,
+            emailVerified:currentUser.emailVerified,
             createdAt: new Date(),
             joinedCommunities: [],
             createdCommunities: [],
@@ -76,12 +74,13 @@ export default function App() {
         setUser({
           uid: currentUser.uid,
           displayName: currentUser.displayName || userData.name,
-          email: currentUser.email,
+          email: currentUser.email||"",
           photoURL: currentUser.photoURL || userData.photoURL,
           provider: userData.provider,
           bio: userData.bio || "",
           phoneNumber: userData.phoneNumber || "",
           facebook: userData.facebook || "",
+          emailVerified:userData.emailVerified,
           twitter: userData.twitter || "",
           linkedin: userData.linkedin || "",
           instagram: userData.instagram || "",
@@ -114,7 +113,7 @@ export default function App() {
 
   const ProtectedRoute = ({
     element,
-    ...rest
+    
   }: {
     element: React.ReactNode;
   }) => {

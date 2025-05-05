@@ -4,14 +4,13 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { DateSelectArg, EventClickArg } from "@fullcalendar/core";
-import { Modal } from "../components/ui/modal";
-import { useModal } from "../hooks/useModal";
-import PageMeta from "../components/common/PageMeta";
+import { Modal } from "@/components/ui/modal";
+import { useModal } from "@/hooks/useModal";
+import PageMeta from "@/components/common/PageMeta";
 // Import your Firestore instance
 
 import useEventStore, { CalendarEvent } from "@/components/store/calenderStore";
 import { useConfirmation } from "@/context/confirmProvider";
-import { CogIcon } from "lucide-react";
 
 const Calendar: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(

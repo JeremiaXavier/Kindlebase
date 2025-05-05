@@ -7,7 +7,6 @@ import Checkbox from "../form/input/Checkbox";
 import { auth } from "../../firebase";
 import toast from 'react-hot-toast';
 import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "firebase/auth";
-import { useAuthStore } from "../store/useAuthStore";
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,8 +17,7 @@ export default function SignUpForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-const { setUser} = useAuthStore();
-  const handleSignUp = async (e) => {
+  const handleSignUp = async (e:React.FormEvent) => {
     e.preventDefault();
     if (!firstName || !lastName || !email || !password) {
       toast.error("Please fill in all required fields.");
@@ -46,7 +44,7 @@ const { setUser} = useAuthStore();
       if (!user.emailVerified) {
         console.log("Sending verification email to:", user.email);
         
-        await sendEmailVerification(auth.currentUser);
+       if(auth.currentUser) await sendEmailVerification(auth.currentUser);
         toast.success(
           "Signup successful! A verification email has been sent to your address. Please verify your email before logging in."
         );
